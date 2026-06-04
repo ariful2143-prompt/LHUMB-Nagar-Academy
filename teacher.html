@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>Teacher Portal — Dhaka Model High School</title>
+  <script>
+    (function(){ var t = localStorage.getItem('dmhs_theme') || 'light'; document.documentElement.setAttribute('data-theme', t); })();
+  </script>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    .timetable-grid {
+      display: grid;
+      grid-template-columns: 80px repeat(6, 1fr);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+    }
+    .tt-header {
+      background: var(--accent-primary);
+      color: #fff;
+      padding: var(--space-sm) var(--space-xs);
+      text-align: center;
+      font-size: var(--text-xs);
+      font-weight: 700;
+    }
+    [data-theme="dark"] .tt-header { background: var(--bg-secondary); color: var(--text-primary); }
+    .tt-time {
+      background: var(--bg-secondary);
+      padding: var(--space-sm);
+      text-align: center;
+      font-size: var(--text-xs);
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .tt-cell {
+      padding: var(--space-xs);
+      border-right: 1px solid var(--border-light);
+      border-bottom: 1px solid var(--border-light);
+      font-size: var(--text-xs);
+      min-height: 60px;
+    }
+    .tt-class {
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-light));
+      color: #fff;
+      border-radius: var(--radius-sm);
+      padding: 4px 6px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .tt-subject { font-weight: 700; font-size: 11px; }
+    .tt-class-label { font-size: 9px; opacity: 0.8; }
+    .assignment-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      border-left: 4px solid var(--accent-primary);
+      transition: all var(--transition-fast);
+    }
+    .assignment-card:hover { transform: translateX(4px); box-shadow: var(--shadow); }
+    .report-stat {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-xl);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="panel-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar" role="navigation" aria-label="Teacher navigation">
+      <a href="index.html" class="sidebar-logo" aria-label="Back to homepage">
+        <div class="sidebar-logo-icon" aria-hidden="true">
+          <i data-lucide="shield" class="icon-sm"></i>
+        </div>
+        <div>
+          <div class="sidebar-school">DMHS</div>
+          <div class="sidebar-role">Teacher Portal</div>
+        </div>
+      </a>
+
+      <nav class="sidebar-nav" role="list">
+        <button class="nav-item active" data-panel="dashboard" role="listitem">
+          <div class="nav-item-icon"><i data-lucide="layout-dashboard"></i></div>
+          Dashboard
+        </button>
+        <button class="nav-item" data-panel="myclasses" role="listitem">
+          <div class="nav-item-icon"><i data-lucide="layout-grid"></i></div>
+          My Classes
+        </button>
+        <button class="nav-item" data-panel="students" role="listitem">
+          <div class="nav-item-icon"><i data-lucide="users"></i></div>
+          My Students
+        </button>
+        <button class="nav-item" data-panel="attendance" role="listitem">
+          <div class="nav-item-icon"><i data-lucide="clipboard-check"></i></div>
+          Attendance
+        </button>
+        <button class="nav-item" data-panel="marks" role="listitem">
+          <div class="nav-item-icon"><i data-lucide="bar-chart-2"></i></div>
+          Enter Marks
+        </button>
+        <button class="nav-item" data-panel="assignments" role="listitem">
+          <div class="nav-item-icon"><i data-lucide="file-text"></i></div>
+          Assignments
+        </button>
+        <button class="nav-item" data-panel="timetable" role="listitem">
+          <div class="nav-item-icon"><i data-lucide="calendar"></i></div>
+          Timetable
+        </button>
+        <button class="nav-item" data-panel="notices" role="listitem">
+          <div class="nav-item-icon"><i data-lucide="bell"></i></div>
+          Notices
+        </button>
+        <button class="nav-item" data-panel="profile" role="listitem">
+          <div class="nav-item-icon"><i data-lucide="user"></i></div>
+          My Profile
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-card">
+          <div class="user-avatar" id="teacher-avatar" aria-hidden="true">TC</div>
+          <div style="flex:1;min-width:0">
+            <div class="user-name" id="teacher-name">Teacher</div>
+            <div class="user-role" id="teacher-subject">Subject</div>
+          </div>
+          <button onclick="Auth.logout('index.html')" class="btn-icon" style="border:none;background:transparent;color:var(--error)" aria-label="Logout">
+            <i data-lucide="log-out" class="icon-sm"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebar-overlay" aria-hidden="true"></div>
+
+    <main class="panel-main" role="main">
+      <header class="panel-topbar" role="banner">
+        <div style="display:flex;align-items:center;gap:var(--space-md)">
+          <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="false">
+            <i data-lucide="menu" class="icon-sm"></i>
+          </button>
+          <h1 class="panel-topbar-title" id="topbar-title">Dashboard</h1>
+        </div>
+        <div class="panel-topbar-actions">
+          <button class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle theme">
+            <i data-lucide="moon" class="icon-sm"></i>
+          </button>
+          <a href="index.html" class="btn btn-ghost btn-sm"><i data-lucide="external-link" class="icon-xs"></i> View Site</a>
+          <button onclick="Auth.logout('index.html')" class="btn btn-danger btn-sm">
+            <i data-lucide="log-out" class="icon-xs"></i> Logout
+          </button>
+        </div>
+      </header>
+
+      <div class="panel-content">
+
+        <!-- DASHBOARD -->
+        <div class="panel active page-enter" id="panel-dashboard">
+          <div class="panel-header">
+            <div>
+              <div style="display:inline-block;height:3px;width:40px;background:linear-gradient(90deg,var(--accent-primary),var(--accent-gold));border-radius:999px;margin-bottom:var(--space-sm)"></div>
+              <h2 class="panel-title" id="teacher-welcome">Welcome, Teacher</h2>
+              <p class="panel-subtitle" id="teacher-date">Loading...</p>
+            </div>
+          </div>
+
+          <div class="kpi-grid" id="teacher-kpi-grid"></div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-lg);margin-top:var(--space-xl)">
+            <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-xl);padding:var(--space-xl)">
+              <div style="font-size:var(--text-base);font-weight:700;margin-bottom:var(--space-lg);display:flex;align-items:center;gap:var(--space-sm)">
+                <i data-lucide="calendar" class="icon-sm"></i> Today's Classes
+              </div>
+              <div id="today-classes-list"></div>
+            </div>
+            <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-xl);padding:var(--space-xl)">
+              <div style="font-size:var(--text-base);font-weight:700;margin-bottom:var(--space-lg);display:flex;align-items:center;gap:var(--space-sm)">
+                <i data-lucide="bell" class="icon-sm"></i> Recent Notices
+              </div>
+              <div id="teacher-notices-list"></div>
+            </div>
+          </div>
+
+          <div style="margin-top:var(--space-xl);background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-xl);padding:var(--space-xl)">
+            <div style="font-size:var(--text-base);font-weight:700;margin-bottom:var(--space-lg);display:flex;align-items:center;gap:var(--space-sm)">
+              <i data-lucide="file-text" class="icon-sm"></i> Pending Assignments
+            </div>
+            <div id="teacher-pending-assignments"></div>
+          </div>
+        </div>
+
+        <!-- MY CLASSES -->
+        <div class="panel" id="panel-myclasses">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">My Classes</h2>
+              <p class="panel-subtitle">Overview of your assigned classes and students</p>
+            </div>
+          </div>
+          <div id="my-classes-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-lg)"></div>
+        </div>
+
+        <!-- MY STUDENTS -->
+        <div class="panel" id="panel-students">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">My Students</h2>
+              <p class="panel-subtitle">Students in your assigned classes</p>
+            </div>
+          </div>
+          <div id="my-students-table"></div>
+        </div>
+
+        <!-- ATTENDANCE -->
+        <div class="panel" id="panel-attendance">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Mark Attendance</h2>
+              <p class="panel-subtitle">Record daily attendance for your classes</p>
+            </div>
+          </div>
+          <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-xl);padding:var(--space-xl);margin-bottom:var(--space-xl)">
+            <div style="display:grid;grid-template-columns:180px 180px 180px 1fr;gap:var(--space-md);align-items:end">
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Class</label>
+                <select id="t-att-class" class="form-select" onchange="loadTeacherAttendance()">
+                  <option value="">Select Class</option>
+                  <option value="10">Class 10</option>
+                  <option value="9">Class 9</option>
+                  <option value="8">Class 8</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Section</label>
+                <select id="t-att-section" class="form-select" onchange="loadTeacherAttendance()">
+                  <option value="A">A</option><option value="B">B</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Date</label>
+                <input type="date" id="t-att-date" class="form-input" onchange="loadTeacherAttendance()">
+              </div>
+              <button class="btn btn-primary" onclick="saveTeacherAttendance()" id="t-save-att-btn" disabled>
+                <i data-lucide="save" class="icon-xs"></i> Save
+              </button>
+            </div>
+          </div>
+          <div id="t-attendance-area">
+            <div style="text-align:center;padding:var(--space-2xl);color:var(--text-muted)">Select class and date to mark attendance.</div>
+          </div>
+        </div>
+
+        <!-- MARKS ENTRY -->
+        <div class="panel" id="panel-marks">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Enter Marks</h2>
+              <p class="panel-subtitle">Submit exam marks for your subject</p>
+            </div>
+          </div>
+          <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-xl);padding:var(--space-xl);margin-bottom:var(--space-xl)">
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-md);align-items:end">
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Class</label>
+                <select id="t-marks-class" class="form-select" onchange="loadTeacherMarks()">
+                  <option value="">Select</option>
+                  <option value="10">10</option><option value="9">9</option><option value="8">8</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Section</label>
+                <select id="t-marks-section" class="form-select" onchange="loadTeacherMarks()">
+                  <option value="A">A</option><option value="B">B</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Exam</label>
+                <select id="t-marks-exam" class="form-select" onchange="loadTeacherMarks()">
+                  <option>Annual</option><option>Half-Yearly</option><option>Monthly</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Year</label>
+                <input type="number" id="t-marks-year" class="form-input" value="2025">
+              </div>
+            </div>
+          </div>
+          <div id="t-marks-area">
+            <div style="text-align:center;padding:var(--space-2xl);color:var(--text-muted)">Select class and exam to enter marks.</div>
+          </div>
+        </div>
+
+        <!-- ASSIGNMENTS -->
+        <div class="panel" id="panel-assignments">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">My Assignments</h2>
+              <p class="panel-subtitle">Create and manage assignments for your classes</p>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="openTeacherAddAssignment()">
+              <i data-lucide="plus" class="icon-xs"></i> New Assignment
+            </button>
+          </div>
+          <div id="t-assignments-table"></div>
+        </div>
+
+        <!-- TIMETABLE -->
+        <div class="panel" id="panel-timetable">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">My Timetable</h2>
+              <p class="panel-subtitle">Your weekly teaching schedule</p>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <div class="timetable-grid" id="timetable-grid" aria-label="Weekly timetable"></div>
+          </div>
+        </div>
+
+        <!-- NOTICES -->
+        <div class="panel" id="panel-notices">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Notice Board</h2>
+              <p class="panel-subtitle">School notices and announcements</p>
+            </div>
+          </div>
+          <div id="t-notices-list" style="display:flex;flex-direction:column;gap:var(--space-sm)"></div>
+        </div>
+
+        <!-- PROFILE -->
+        <div class="panel" id="panel-profile">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">My Profile</h2>
+              <p class="panel-subtitle">View and update your profile information</p>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-xl)">
+            <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-xl);padding:var(--space-xl)" id="teacher-profile-card"></div>
+            <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-xl);padding:var(--space-xl)">
+              <h3 style="font-size:var(--text-lg);font-weight:700;margin-bottom:var(--space-xl)">
+                <i data-lucide="lock" class="icon-sm" style="vertical-align:middle;margin-right:4px"></i> Change Password
+              </h3>
+              <form id="teacher-pwd-form" novalidate>
+                <div class="form-group">
+                  <label class="form-label">Current Password</label>
+                  <input type="password" id="t-pwd-current" class="form-input" placeholder="Current password">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">New Password</label>
+                  <input type="password" id="t-pwd-new" class="form-input" placeholder="Min. 6 characters">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Confirm New Password</label>
+                  <input type="password" id="t-pwd-confirm" class="form-input" placeholder="Re-enter">
+                </div>
+                <div class="field-error" id="t-pwd-error"></div>
+                <button type="submit" class="btn btn-primary">
+                  <i data-lucide="key" class="icon-xs"></i> Update Password
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="js/db.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+  // ─── Auth Guard
+  const session = Auth.require('teacher', 'index.html');
+  if (!session) throw new Error('Unauthorized');
+
+  let teacherData = null;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    lucide.createIcons();
+    UI.initToasts();
+    ThemeManager.bindToggle('theme-toggle');
+
+    // Get teacher from DB
+    const teachers = DB.getAll(DB_KEYS.TEACHERS);
+    teacherData = teachers.find(t => t.id === session.teacherId) || teachers[0];
+
+    if (teacherData) {
+      const initials = teacherData.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+      document.getElementById('teacher-avatar').textContent = initials;
+      document.getElementById('teacher-name').textContent   = teacherData.name;
+      document.getElementById('teacher-subject').textContent = teacherData.subject;
+      document.getElementById('teacher-welcome').textContent = `Welcome, ${teacherData.name.split(' ')[0]}`;
+    }
+
+    document.getElementById('teacher-date').textContent =
+      new Date().toLocaleDateString('en-BD', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+    // Today's attendance date
+    document.getElementById('t-att-date').value = new Date().toISOString().split('T')[0];
+
+    // Nav
+    document.querySelectorAll('.nav-item[data-panel]').forEach(item => {
+      item.addEventListener('click', () => {
+        Router.showPanel(item.dataset.panel);
+        document.getElementById('topbar-title').textContent = item.textContent.trim();
+        loadTeacherPanel(item.dataset.panel);
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('sidebar-overlay').classList.remove('visible');
+      });
+    });
+
+    // Sidebar toggle
+    document.getElementById('sidebar-toggle').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebar-overlay').classList.toggle('visible');
+    });
+    document.getElementById('sidebar-overlay').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebar-overlay').classList.remove('visible');
+    });
+
+    loadTeacherDashboard();
+    loadTeacherPanel('myclasses');
+    loadTeacherPanel('students');
+    loadTeacherAssignments();
+    loadTeacherNotices();
+    loadTeacherProfile();
+    renderTimetable();
+  });
+
+  function loadTeacherPanel(panel) {
+    if (panel === 'dashboard') loadTeacherDashboard();
+    if (panel === 'myclasses') loadMyClasses();
+    if (panel === 'students') loadMyStudents();
+    if (panel === 'assignments') loadTeacherAssignments();
+    if (panel === 'notices') loadTeacherNotices();
+    if (panel === 'profile') loadTeacherProfile();
+    if (panel === 'timetable') renderTimetable();
+  }
+
+  function loadTeacherDashboard() {
+    const students    = DB.getAll(DB_KEYS.STUDENTS);
+    const assignments = DB.getAll(DB_KEYS.ASSIGNMENTS);
+    const att         = DB.getAll(DB_KEYS.ATTENDANCE);
+    const today       = new Date().toISOString().split('T')[0];
+
+    const myStudents  = teacherData ? students.filter(s => teacherData.classes?.some(c => c.includes(s.class))) : students.slice(0, 20);
+    const myAss       = assignments.filter(a => a.postedBy === session.id || (teacherData && a.subject === teacherData.subject));
+    const todayAtt    = att.filter(a => a.date === today);
+
+    document.getElementById('teacher-kpi-grid').innerHTML = `
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-green"><i data-lucide="users" class="icon-md"></i></div>
+        <div>
+          <div class="kpi-value">${myStudents.length}</div>
+          <div class="kpi-label">My Students</div>
+          <div class="kpi-change positive"><i data-lucide="check" style="width:12px;height:12px"></i> Assigned</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-blue"><i data-lucide="file-text" class="icon-md"></i></div>
+        <div>
+          <div class="kpi-value">${myAss.length}</div>
+          <div class="kpi-label">Assignments</div>
+          <div class="kpi-change positive"><i data-lucide="clipboard-check" style="width:12px;height:12px"></i> Created</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-gold"><i data-lucide="clipboard-check" class="icon-md"></i></div>
+        <div>
+          <div class="kpi-value">${todayAtt.filter(a=>a.status==='Present').length}</div>
+          <div class="kpi-label">Present Today</div>
+          <div class="kpi-change positive"><i data-lucide="trending-up" style="width:12px;height:12px"></i> Recorded</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-red"><i data-lucide="x-circle" class="icon-md"></i></div>
+        <div>
+          <div class="kpi-value">${todayAtt.filter(a=>a.status==='Absent').length}</div>
+          <div class="kpi-label">Absent Today</div>
+          <div class="kpi-change ${todayAtt.filter(a=>a.status==='Absent').length > 0 ? 'negative' : 'positive'}"><i data-lucide="trending-down" style="width:12px;height:12px"></i> Absent</div>
+        </div>
+      </div>
+    `;
+    lucide.createIcons();
+
+    // Today's classes
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const todayDay = days[new Date().getDay()];
+    const timetable = [
+      { period: '1st', subject: teacherData?.subject || 'Mathematics', class: '10A', time: '8:00–8:45', day: 'Sun' },
+      { period: '2nd', subject: teacherData?.subject || 'Mathematics', class: '9B', time: '8:45–9:30', day: 'Mon' },
+      { period: '3rd', subject: teacherData?.subject || 'Mathematics', class: '8A', time: '9:45–10:30', day: todayDay },
+      { period: '4th', subject: teacherData?.subject || 'Mathematics', class: '10A', time: '10:30–11:15', day: todayDay },
+    ].filter(t => t.day === todayDay);
+
+    document.getElementById('today-classes-list').innerHTML = timetable.length ? timetable.map(t => `
+      <div style="display:flex;gap:var(--space-md);padding:var(--space-sm) 0;border-bottom:1px solid var(--border-light)">
+        <div style="background:linear-gradient(135deg,var(--accent-primary),var(--accent-gold));color:#fff;width:48px;height:48px;border-radius:var(--radius-md);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;font-weight:700">
+          <span>${t.period}</span>
+        </div>
+        <div>
+          <div style="font-weight:700;font-size:var(--text-sm)">${UI._escapeHtml(t.subject)} — ${t.class}</div>
+          <div style="font-size:var(--text-xs);color:var(--text-muted)">${t.time}</div>
+        </div>
+      </div>
+    `).join('') : '<p style="color:var(--text-muted);font-size:var(--text-sm)">No classes scheduled for today.</p>';
+
+    // Notices
+    const notices = DB.getAll(DB_KEYS.NOTICES).filter(n => n.published).slice(0, 4);
+    document.getElementById('teacher-notices-list').innerHTML = notices.map(n => `
+      <div style="display:flex;align-items:center;gap:var(--space-sm);padding:var(--space-xs) 0;border-bottom:1px solid var(--border-light)">
+        ${UI.categoryBadge(n.category)}
+        <span style="flex:1;font-size:var(--text-sm);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${UI._escapeHtml(n.title)}</span>
+        <span style="font-size:var(--text-xs);color:var(--text-muted)">${UI.formatDate(n.date, {month:'short',day:'numeric'})}</span>
+      </div>
+    `).join('') || '<p style="color:var(--text-muted);font-size:var(--text-sm)">No notices.</p>';
+
+    // Pending assignments
+    const pending = myAss.filter(a => !a.submitted).slice(0, 5);
+    document.getElementById('teacher-pending-assignments').innerHTML = pending.length ? pending.map(a => `
+      <div style="display:flex;align-items:center;gap:var(--space-md);padding:var(--space-sm) var(--space-md);background:var(--bg-secondary);border-radius:var(--radius-md);margin-bottom:var(--space-xs)">
+        <i data-lucide="file-text" style="color:var(--accent-primary);flex-shrink:0" class="icon-sm"></i>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:var(--text-sm)">${UI._escapeHtml(a.title)}</div>
+          <div style="font-size:var(--text-xs);color:var(--text-muted)">${a.class} · Due: ${UI.formatDate(a.dueDate, {month:'short',day:'numeric'})}</div>
+        </div>
+        <span class="badge badge-orange">Pending</span>
+      </div>
+    `).join('') : '<p style="color:var(--text-muted);font-size:var(--text-sm)">No pending assignments.</p>';
+
+    lucide.createIcons();
+  }
+
+  function loadMyClasses() {
+    const students = DB.getAll(DB_KEYS.STUDENTS);
+    const classes  = ['10A','10B','9A','9B','8A','8B'];
+    const colors   = ['linear-gradient(135deg,#1B4332,#2D6A4F)','linear-gradient(135deg,#1A5276,#2E86C1)','linear-gradient(135deg,#7D3C98,#9B59B6)','linear-gradient(135deg,#B7950B,#D4A017)','linear-gradient(135deg,#C0392B,#E74C3C)','linear-gradient(135deg,#117A65,#1ABC9C)'];
+    const grid = document.getElementById('my-classes-grid');
+    grid.innerHTML = classes.map((cls, i) => {
+      const c = cls.slice(0,-1), s = cls.slice(-1);
+      const count = students.filter(st => st.class === c && st.section === s).length;
+      return `
+        <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-xl);padding:var(--space-xl);box-shadow:var(--shadow-sm)">
+          <div style="background:${colors[i]};border-radius:var(--radius-lg);padding:var(--space-xl);text-align:center;color:#fff;margin-bottom:var(--space-lg)">
+            <div style="font-family:var(--font-display);font-size:var(--text-3xl);font-weight:900;margin-bottom:4px">Class ${c}</div>
+            <div style="font-size:var(--text-xl);opacity:0.85">Section ${s}</div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-md)">
+            <div>
+              <div style="font-family:var(--font-mono);font-size:var(--text-2xl);font-weight:700;color:var(--accent-primary)">${count}</div>
+              <div style="font-size:var(--text-xs);color:var(--text-muted)">Students</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:var(--text-sm);font-weight:600">${UI._escapeHtml(teacherData?.subject || 'Mathematics')}</div>
+              <div style="font-size:var(--text-xs);color:var(--text-muted)">Subject</div>
+            </div>
+          </div>
+          <button class="btn btn-outline btn-sm btn-full" onclick="Router.showPanel('attendance');document.getElementById('topbar-title').textContent='Attendance'">
+            <i data-lucide="clipboard-check" class="icon-xs"></i> Mark Attendance
+          </button>
+        </div>
+      `;
+    }).join('');
+    lucide.createIcons();
+  }
+
+  function loadMyStudents() {
+    const students = DB.getAll(DB_KEYS.STUDENTS);
+    const columns = [
+      { key: 'roll',    label: 'Roll', render: v => `<span style="font-family:var(--font-mono);font-weight:600">${UI._escapeHtml(v)}</span>` },
+      { key: 'name',    label: 'Name', render: (v) => {
+          const ini = v.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+          return `<div style="display:flex;align-items:center;gap:var(--space-sm)"><div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#1B4332,#2D6A4F);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">${ini}</div><span style="font-weight:600">${UI._escapeHtml(v)}</span></div>`;
+        }
+      },
+      { key: 'class',   label: 'Class', render: (v, row) => `Class ${v}-${row.section}` },
+      { key: 'guardian',label: 'Guardian' },
+      { key: 'contact', label: 'Contact', render: v => `<span style="font-family:var(--font-mono);font-size:var(--text-xs)">${UI._escapeHtml(v)}</span>` },
+    ];
+    const container = document.getElementById('my-students-table');
+    const table = UI.createTable(students, columns, {
+      pageSize: 10,
+      onView:   (id, row) => viewStudentFromTeacher(row),
+    });
+    container.innerHTML = '';
+    container.appendChild(table);
+  }
+
+  function viewStudentFromTeacher(student) {
+    const results = DB.getAll(DB_KEYS.RESULTS).filter(r => r.studentId === student.id);
+    const content = `
+      <div style="display:flex;gap:var(--space-lg);align-items:center;margin-bottom:var(--space-xl)">
+        <div style="width:64px;height:64px;border-radius:var(--radius-xl);background:linear-gradient(135deg,#1B4332,#D4A017);display:flex;align-items:center;justify-content:center;color:#fff;font-size:var(--text-xl);font-weight:900;flex-shrink:0">
+          ${student.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()}
+        </div>
+        <div>
+          <div style="font-size:var(--text-xl);font-weight:700">${UI._escapeHtml(student.name)}</div>
+          <div style="color:var(--text-secondary)">Roll: ${student.roll} · Class ${student.class}-${student.section}</div>
+          <div style="color:var(--text-muted);font-size:var(--text-sm)">Guardian: ${UI._escapeHtml(student.guardian)} · ${UI._escapeHtml(student.contact)}</div>
+        </div>
+      </div>
+      <div style="font-weight:700;margin-bottom:var(--space-sm)">Exam Records (${results.length})</div>
+      ${results.length ? results.map(r => `
+        <div style="display:flex;align-items:center;gap:var(--space-md);padding:var(--space-sm);background:var(--bg-secondary);border-radius:var(--radius-md);margin-bottom:var(--space-xs)">
+          <span class="badge badge-blue">${r.examType} ${r.year}</span>
+          <span style="font-family:var(--font-mono);font-weight:700;color:var(--accent-primary)">GPA: ${GRADING.calculateGPA(r.subjects)}</span>
+          <span class="badge ${r.published ? 'badge-green' : 'badge-gray'}">${r.published ? 'Published' : 'Draft'}</span>
+        </div>
+      `).join('') : '<p style="color:var(--text-muted);font-size:var(--text-sm)">No exam records yet.</p>'}
+    `;
+    UI.openModal('Student Profile', content, [
+      { label: 'Close', variant: 'ghost', onClick: () => UI.closeModal() }
+    ]);
+  }
+
+  function loadTeacherAttendance() {
+    const cls     = document.getElementById('t-att-class').value;
+    const section = document.getElementById('t-att-section').value;
+    const date    = document.getElementById('t-att-date').value;
+    const area    = document.getElementById('t-attendance-area');
+    const saveBtn = document.getElementById('t-save-att-btn');
+    if (!cls || !date) return;
+    saveBtn.disabled = false;
+    const students = DB.getAll(DB_KEYS.STUDENTS).filter(s => s.class === cls && s.section === section);
+    const existing = DB.getAll(DB_KEYS.ATTENDANCE).filter(a => a.date === date && a.classId === `${cls}${section}`);
+    area.innerHTML = `
+      <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-xl);overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:var(--space-md) var(--space-xl);background:var(--bg-secondary);border-bottom:1px solid var(--border)">
+          <span style="font-size:var(--text-sm);font-weight:700">Class ${cls}-${section} · ${UI.formatDate(date, {weekday:'long',month:'long',day:'numeric'})}</span>
+          <div style="display:flex;gap:var(--space-sm)">
+            <button class="btn btn-success btn-sm" onclick="tMarkAll('Present')">All Present</button>
+            <button class="btn btn-ghost btn-sm" onclick="tMarkAll('Absent')">All Absent</button>
+          </div>
+        </div>
+        ${students.map(s => {
+          const rec = existing.find(a => a.studentId === s.id);
+          const status = rec?.status || 'Present';
+          return `
+            <div style="display:flex;align-items:center;gap:var(--space-md);padding:var(--space-sm) var(--space-xl);background:var(--card-bg);border-bottom:1px solid var(--border-light)" data-sid="${s.id}">
+              <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#1B4332,#2D6A4F);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">
+                ${s.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()}
+              </div>
+              <div style="flex:1"><div style="font-weight:600;font-size:var(--text-sm)">${UI._escapeHtml(s.name)}</div><div style="font-size:var(--text-xs);color:var(--text-muted)">Roll: ${s.roll}</div></div>
+              <div style="display:flex;gap:var(--space-xs)">
+                <button class="att-status-btn att-present ${status==='Present'?'selected':''}" onclick="tSetStatus('${s.id}','Present',this)">Present</button>
+                <button class="att-status-btn att-absent  ${status==='Absent' ?'selected':''}" onclick="tSetStatus('${s.id}','Absent',this)">Absent</button>
+                <button class="att-status-btn att-late    ${status==='Late'   ?'selected':''}" onclick="tSetStatus('${s.id}','Late',this)">Late</button>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  function tSetStatus(sid, status, btn) {
+    const row = btn.closest('[data-sid]');
+    row.querySelectorAll('.att-status-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  }
+
+  function tMarkAll(status) {
+    document.querySelectorAll('#t-attendance-area [data-sid]').forEach(row => {
+      row.querySelectorAll('.att-status-btn').forEach(b => b.classList.remove('selected'));
+      row.querySelector(`.att-${status.toLowerCase()}`)?.classList.add('selected');
+    });
+  }
+
+  function saveTeacherAttendance() {
+    const cls = document.getElementById('t-att-class').value;
+    const sec = document.getElementById('t-att-section').value;
+    const date = document.getElementById('t-att-date').value;
+    if (!cls || !date) return;
+    const classId = `${cls}${sec}`;
+    const existing = DB.getAll(DB_KEYS.ATTENDANCE).filter(a => !(a.date === date && a.classId === classId));
+    document.querySelectorAll('#t-attendance-area [data-sid]').forEach(row => {
+      const sid = row.dataset.sid;
+      const status = row.querySelector('.att-status-btn.selected')?.textContent || 'Present';
+      existing.push({ studentId: sid, date, status, classId });
+    });
+    DB.saveAll(DB_KEYS.ATTENDANCE, existing);
+    UI.showToast('Attendance saved!', 'success');
+  }
+
+  window.loadTeacherAttendance = loadTeacherAttendance;
+  window.tSetStatus = tSetStatus;
+  window.tMarkAll = tMarkAll;
+  window.saveTeacherAttendance = saveTeacherAttendance;
+
+  function loadTeacherMarks() {
+    const cls      = document.getElementById('t-marks-class').value;
+    const section  = document.getElementById('t-marks-section').value;
+    const examType = document.getElementById('t-marks-exam').value;
+    const year     = document.getElementById('t-marks-year').value;
+    const area     = document.getElementById('t-marks-area');
+    if (!cls) return;
+    const students = DB.getAll(DB_KEYS.STUDENTS).filter(s => s.class === cls && s.section === section);
+    const subject  = teacherData?.subject || 'Mathematics';
+    const existingResults = DB.getAll(DB_KEYS.RESULTS);
+    area.innerHTML = `
+      <style>@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}</style>
+      <div style="overflow-x:auto;border-radius:var(--radius-xl);border:1px solid var(--border)">
+        <table style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr>
+              <th style="padding:var(--space-sm) var(--space-md);background:var(--bg-secondary);font-size:var(--text-xs);text-align:left">Roll</th>
+              <th style="padding:var(--space-sm) var(--space-md);background:var(--bg-secondary);font-size:var(--text-xs);text-align:left">Student Name</th>
+              <th style="padding:var(--space-sm) var(--space-md);background:var(--bg-secondary);font-size:var(--text-xs);text-align:center">${UI._escapeHtml(subject)} Marks</th>
+              <th style="padding:var(--space-sm) var(--space-md);background:var(--bg-secondary);font-size:var(--text-xs);text-align:center">Grade</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${students.map(s => {
+              const exRes = existingResults.find(r => r.studentId === s.id && r.examType === examType && r.year === year);
+              const subMarks = exRes?.subjects?.find(x => x.name === subject)?.marks ?? '';
+              return `
+                <tr data-sid="${s.id}">
+                  <td style="padding:var(--space-sm) var(--space-md);font-family:var(--font-mono);font-weight:600;border-bottom:1px solid var(--border-light)">${UI._escapeHtml(s.roll)}</td>
+                  <td style="padding:var(--space-sm) var(--space-md);font-weight:600;border-bottom:1px solid var(--border-light)">${UI._escapeHtml(s.name)}</td>
+                  <td style="padding:var(--space-sm) var(--space-md);text-align:center;border-bottom:1px solid var(--border-light)">
+                    <input type="number" class="marks-input" id="marks-${s.id}" value="${subMarks}" min="0" max="100" placeholder="—" style="width:80px;padding:4px 8px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:var(--font-mono);text-align:center;background:var(--card-bg);color:var(--text-primary)">
+                    <div id="error-${s.id}" style="font-size:10px;color:red;height:12px;margin-top:2px;display:none">Invalid marks!</div>
+                  </td>
+                  <td style="padding:var(--space-sm) var(--space-md);text-align:center;border-bottom:1px solid var(--border-light)" id="grade-${s.id}">
+                    ${subMarks !== '' ? UI.gradeDisplay(parseInt(subMarks)) : '—'}
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div style="display:flex;gap:var(--space-sm);margin-top:var(--space-lg)">
+        <button class="btn btn-primary" onclick="saveTeacherMarks('${cls}','${section}','${examType}','${year}')">
+          <i data-lucide="save" class="icon-xs"></i> Save Marks
+        </button>
+      </div>
+    `;
+    lucide.createIcons();
+    students.forEach(s => {
+      const inp = document.getElementById(`marks-${s.id}`);
+      const err = document.getElementById(`error-${s.id}`);
+      if (inp) inp.addEventListener('input', () => {
+        const val = parseInt(inp.value);
+        const isValid = inp.value === '' || (val >= 0 && val <= 100);
+        inp.style.borderColor = isValid ? 'var(--border)' : 'red';
+        err.style.display = isValid ? 'none' : 'block';
+        if (!isValid) inp.style.animation = 'shake 0.2s linear';
+        else inp.style.animation = 'none';
+        
+        const grade = document.getElementById(`grade-${s.id}`);
+        if (grade) grade.innerHTML = (isValid && inp.value !== '') ? UI.gradeDisplay(val) : '—';
+        lucide.createIcons();
+      });
+    });
+  }
+
+  function saveTeacherMarks(cls, section, examType, year) {
+    const students = DB.getAll(DB_KEYS.STUDENTS).filter(s => s.class === cls && s.section === section);
+    const subject  = teacherData?.subject || 'Mathematics';
+    const existing = DB.getAll(DB_KEYS.RESULTS);
+    let saved = 0;
+    let hasErrors = false;
+
+    students.forEach(s => {
+      const inp = document.getElementById(`marks-${s.id}`);
+      const errEl = document.getElementById(`error-${s.id}`);
+      if (!inp || inp.value === '') return;
+
+      const marks = parseInt(inp.value);
+      // Guard: reject invalid range
+      if (isNaN(marks) || marks < 0 || marks > 100) {
+        hasErrors = true;
+        inp.style.borderColor = 'red';
+        if (errEl) { errEl.textContent = 'Must be 0–100'; errEl.style.display = 'block'; }
+        return;
+      }
+
+      const idx = existing.findIndex(r => r.studentId === s.id && r.examType === examType && r.year === year);
+      if (idx >= 0) {
+        const subIdx = existing[idx].subjects.findIndex(x => x.name === subject);
+        if (subIdx >= 0) existing[idx].subjects[subIdx].marks = marks;
+        else existing[idx].subjects.push({ name: subject, marks });
+      } else {
+        existing.push({ studentId: s.id, examType, year, class: cls, section, published: false, subjects: [{ name: subject, marks }] });
+      }
+      saved++;
+    });
+
+    if (hasErrors) {
+      UI.showToast('Some marks are out of range (0–100). Please correct them before saving.', 'error');
+      return;
+    }
+    DB.saveAll(DB_KEYS.RESULTS, existing);
+    UI.showToast(`Marks saved for ${saved} student${saved !== 1 ? 's' : ''}!`, 'success');
+  }
+
+  window.loadTeacherMarks = loadTeacherMarks;
+  window.saveTeacherMarks = saveTeacherMarks;
+
+  function loadTeacherAssignments() {
+    const assignments = DB.getAll(DB_KEYS.ASSIGNMENTS).filter(a => a.postedBy === session.id || (teacherData && a.subject === teacherData.subject));
+    const columns = [
+      { key: 'title',   label: 'Title',   render: v => `<span style="font-weight:600">${UI._escapeHtml(v)}</span>` },
+      { key: 'subject', label: 'Subject' },
+      { key: 'class',   label: 'Class' },
+      { key: 'dueDate', label: 'Due Date', render: v => UI.formatDate(v, {month:'short',day:'numeric'}) },
+      { key: 'submitted', label: 'Status', render: v => `<span class="badge ${v ? 'badge-green' : 'badge-orange'}">${v ? 'Submitted' : 'Pending'}</span>` },
+    ];
+    const container = document.getElementById('t-assignments-table');
+    const table = UI.createTable(assignments, columns, {
+      onDelete: (id, row) => deleteTeacherAssignment(id, row.title),
+    });
+    container.innerHTML = '';
+    container.appendChild(table);
+  }
+
+  function openTeacherAddAssignment() {
+    const content = `
+      <div class="form-group"><label class="form-label">Title *</label><input type="text" id="ta-title" class="form-input" required></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--space-md)">
+        <div class="form-group"><label class="form-label">Class</label>
+          <select id="ta-class" class="form-select">${['10A','10B','9A','9B','8A','8B'].map(c=>`<option>${c}</option>`).join('')}</select>
+        </div>
+        <div class="form-group"><label class="form-label">Due Date</label><input type="date" id="ta-due" class="form-input"></div>
+        <div class="form-group"><label class="form-label">Subject</label>
+          <input type="text" id="ta-sub" class="form-input" value="${UI._escapeHtml(teacherData?.subject || '')}">
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Description</label><textarea id="ta-desc" class="form-textarea"></textarea></div>
+    `;
+    UI.openModal('New Assignment', content, [
+      { label: 'Cancel', variant: 'ghost', onClick: () => UI.closeModal() },
+      { label: 'Create', variant: 'primary', icon: 'plus', onClick: () => {
+        const title = document.getElementById('ta-title').value.trim();
+        if (!title) return;
+        DB.add(DB_KEYS.ASSIGNMENTS, {
+          id: DB.nextId(DB_KEYS.ASSIGNMENTS, 'ASN'), title,
+          subject:     document.getElementById('ta-sub').value,
+          class:       document.getElementById('ta-class').value,
+          dueDate:     document.getElementById('ta-due').value,
+          description: document.getElementById('ta-desc').value,
+          postedBy:    session.id,
+          submitted:   false,
+        });
+        UI.closeModal(); UI.showToast('Assignment created!', 'success'); loadTeacherAssignments();
+      }},
+    ]);
+  }
+
+  async function deleteTeacherAssignment(id, title) {
+    const ok = await UI.confirmDialog(`Delete assignment "${title}"?`);
+    if (!ok) return;
+    DB.delete(DB_KEYS.ASSIGNMENTS, id);
+    UI.showToast('Deleted.', 'success');
+    loadTeacherAssignments();
+  }
+
+  window.openTeacherAddAssignment = openTeacherAddAssignment;
+
+  function renderTimetable() {
+    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday'];
+    const periods = ['8:00–8:45','8:45–9:30','9:45–10:30','10:30–11:15','11:30–12:15','12:15–1:00'];
+    const sub = teacherData?.subject || 'Mathematics';
+    const schedule = {
+      'Sunday':    [null, { class:'10A', subject: sub }, null, { class:'9B', subject: sub }, null, null],
+      'Monday':    [{ class:'9A', subject: sub }, null, null, null, { class:'8A', subject: sub }, null],
+      'Tuesday':   [null, null, { class:'10B', subject: sub }, null, null, { class:'9B', subject: sub }],
+      'Wednesday': [{ class:'8B', subject: sub }, null, { class:'10A', subject: sub }, null, null, null],
+      'Thursday':  [null, { class:'9A', subject: sub }, null, null, { class:'10B', subject: sub }, null],
+      'Friday':    [null, null, null, null, null, null],
+    };
+
+    const grid = document.getElementById('timetable-grid');
+    let html = `<div class="tt-header" style="background:var(--bg-secondary);color:var(--text-muted)">Period</div>`;
+    days.forEach(d => html += `<div class="tt-header">${d}</div>`);
+
+    periods.forEach((period, pi) => {
+      html += `<div class="tt-time">${period}</div>`;
+      days.forEach(day => {
+        const cls = schedule[day]?.[pi];
+        html += `<div class="tt-cell">${cls ? `<div class="tt-class"><div class="tt-subject">${cls.subject}</div><div class="tt-class-label">${cls.class}</div></div>` : ''}</div>`;
+      });
+    });
+
+    grid.innerHTML = html;
+  }
+
+  function loadTeacherNotices() {
+    const notices = DB.getAll(DB_KEYS.NOTICES).filter(n => n.published);
+    const list = document.getElementById('t-notices-list');
+    const iconMap = { Exam: { icon: 'file-text', cls: 'exam' }, Holiday: { icon: 'sun', cls: 'holiday' }, Event: { icon: 'calendar', cls: 'event' }, Academic: { icon: 'book-open', cls: 'academic' } };
+    list.innerHTML = notices.map(n => {
+      const ic = iconMap[n.category] || { icon: 'bell', cls: 'academic' };
+      return `
+        <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-lg);display:flex;gap:var(--space-md);align-items:flex-start">
+          <div class="notice-icon ${ic.cls}"><i data-lucide="${ic.icon}" class="icon-sm"></i></div>
+          <div style="flex:1">
+            <div style="font-weight:600;color:var(--text-primary)">${UI._escapeHtml(n.title)}</div>
+            <p style="font-size:var(--text-sm);color:var(--text-secondary);margin-top:4px">${UI._escapeHtml(n.content.substring(0,120))}...</p>
+            <div style="display:flex;align-items:center;gap:var(--space-sm);margin-top:var(--space-sm)">
+              ${UI.categoryBadge(n.category)}
+              <span style="font-size:var(--text-xs);color:var(--text-muted)">${UI.formatDate(n.date, {month:'short',day:'numeric',year:'numeric'})}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('') || '<div style="text-align:center;padding:var(--space-2xl);color:var(--text-muted)">No notices available.</div>';
+    lucide.createIcons();
+  }
+
+  function loadTeacherProfile() {
+    const card = document.getElementById('teacher-profile-card');
+    if (!teacherData || !card) return;
+    const ini = teacherData.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+    card.innerHTML = `
+      <div style="text-align:center;margin-bottom:var(--space-xl)">
+        <div style="width:80px;height:80px;border-radius:var(--radius-full);background:linear-gradient(135deg,#1B4332,#D4A017);display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--font-display);font-size:var(--text-2xl);font-weight:700;margin:0 auto var(--space-md)">${ini}</div>
+        <h3 style="font-size:var(--text-xl);font-weight:700">${UI._escapeHtml(teacherData.name)}</h3>
+        <p style="color:var(--accent-primary);font-weight:600">${UI._escapeHtml(teacherData.subject)}</p>
+        <span class="badge badge-blue" style="margin-top:4px">${UI._escapeHtml(teacherData.designation || 'Teacher')}</span>
+      </div>
+      <table style="width:100%;font-size:var(--text-sm)">
+        ${[
+          ['ID', teacherData.id],
+          ['Qualification', teacherData.qualification],
+          ['Experience', `${teacherData.experience} years`],
+          ['Contact', teacherData.contact],
+          ['Join Year', teacherData.joinYear],
+        ].map(([k,v]) => `<tr><td style="padding:var(--space-sm);color:var(--text-muted);font-weight:600;width:120px">${k}</td><td style="padding:var(--space-sm);font-family:${k==='ID'?'var(--font-mono)':'var(--font-body)'}">${UI._escapeHtml(String(v))}</td></tr>`).join('')}
+      </table>
+    `;
+
+    document.getElementById('teacher-pwd-form').onsubmit = (e) => {
+      e.preventDefault();
+      const curr = document.getElementById('t-pwd-current').value;
+      const nw   = document.getElementById('t-pwd-new').value;
+      const cnf  = document.getElementById('t-pwd-confirm').value;
+      const err  = document.getElementById('t-pwd-error');
+      if (nw !== cnf) { err.textContent = 'Passwords do not match.'; return; }
+      const res = Auth.changePassword(curr, nw);
+      if (!res.success) { err.textContent = res.error; return; }
+      err.textContent = '';
+      UI.showToast('Password updated!', 'success');
+      document.getElementById('teacher-pwd-form').reset();
+    };
+  }
+  </script>
+</body>
+</html>

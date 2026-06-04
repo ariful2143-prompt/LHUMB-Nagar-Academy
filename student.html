@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>Student Portal — Dhaka Model High School</title>
+  <script src="js/db.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    // ─── Auth Guard (runs immediately, before DOMContentLoaded)
+    (function() {
+      const s = sessionStorage.getItem('dmhs_session');
+      if (!s) { window.location.href = 'index.html'; throw new Error('Unauthorized'); }
+      const sess = JSON.parse(s);
+      if (sess.role !== 'student') { window.location.href = 'index.html'; throw new Error('Unauthorized'); }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    /* ─── Premium Portal Enhancements ─────────────────────────── */
+
+    /* Sidebar gradient accent */
+    .sidebar {
+      background: linear-gradient(180deg, var(--card-bg) 0%, var(--bg-secondary) 100%);
+      border-right: 1px solid var(--border);
+    }
+
+    .sidebar-logo {
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-dark));
+      border-bottom: none;
+    }
+    .sidebar-logo .sidebar-school { color: #fff; }
+    .sidebar-logo .sidebar-role   { color: rgba(212,160,23,0.9); }
+    .sidebar-logo-icon { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); }
+    .sidebar-logo-icon i { color: #fff; }
+
+    .nav-item.active {
+      background: linear-gradient(90deg, rgba(27,67,50,0.12), rgba(27,67,50,0.04));
+      color: var(--accent-primary);
+      font-weight: 700;
+      position: relative;
+    }
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 20%;
+      bottom: 20%;
+      width: 3px;
+      background: var(--accent-primary);
+      border-radius: 0 var(--radius-full) var(--radius-full) 0;
+    }
+    [data-theme="dark"] .nav-item.active {
+      background: linear-gradient(90deg, rgba(46,204,113,0.15), rgba(46,204,113,0.04));
+    }
+    [data-theme="dark"] .nav-item.active::before { background: var(--accent-primary); }
+
+    /* Topbar premium */
+    .panel-topbar {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px) saturate(180%);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 1px 0 var(--border-light), 0 2px 12px rgba(0,0,0,0.04);
+    }
+    .panel-topbar-title {
+      font-family: var(--font-display);
+      font-size: var(--text-xl);
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--text-primary), var(--accent-primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Student-specific additions */
+    .result-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-md);
+      margin-bottom: var(--space-xl);
+    }
+    @media (max-width: 768px) { .result-summary-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .subject-result-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      padding: var(--space-md) var(--space-lg);
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-xs);
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+    }
+    .subject-result-row:hover { transform: translateX(4px); box-shadow: var(--shadow-sm); }
+
+    .marks-pill {
+      font-family: var(--font-mono);
+      font-size: var(--text-lg);
+      font-weight: 700;
+      min-width: 56px;
+      text-align: center;
+    }
+
+    .progress-pill {
+      flex: 1;
+      height: 8px;
+      background: var(--bg-secondary);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+
+    .progress-fill-pill {
+      height: 100%;
+      border-radius: var(--radius-full);
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-gold));
+      transition: width 1s ease;
+    }
+
+    .att-calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-top: var(--space-md);
+    }
+
+    .att-day-label {
+      text-align: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-muted);
+      padding-bottom: 4px;
+    }
+
+    .att-day-cell {
+      aspect-ratio: 1;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: default;
+    }
+
+    .att-cell-present { background: var(--success-bg); color: var(--success); }
+    .att-cell-absent  { background: var(--error-bg);   color: var(--error); }
+    .att-cell-late    { background: var(--warning-bg);  color: var(--warning); }
+    .att-cell-empty   { background: var(--bg-secondary); color: transparent; }
+
+    .notice-card-student {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      border-left: 4px solid var(--accent-primary);
+      transition: all var(--transition-fast);
+      cursor: pointer;
+    }
+    .notice-card-student:hover { transform: translateX(4px); box-shadow: var(--shadow); }
+
+    .assignment-item {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      display: flex;
+      gap: var(--space-md);
+      align-items: center;
+      margin-bottom: var(--space-sm);
+      transition: all var(--transition-fast);
+    }
+    .assignment-item:hover { transform: translateX(4px); box-shadow: var(--shadow); }
+
+    /* Circular progress for GPA */
+    .gpa-ring {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      margin: 0 auto;
+    }
+    .gpa-ring svg { transform: rotate(-90deg); }
+    .gpa-ring-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .gpa-ring-value {
+      font-family: var(--font-mono);
+      font-size: var(--text-2xl);
+      font-weight: 700;
+      color: var(--accent-primary);
+      line-height: 1;
+    }
+    .gpa-ring-label {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+    }
+
+    /* Dashboard 3-col grid */
+    .dash-3col {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: var(--space-lg);
+      margin-top: var(--space-xl);
+    }
+    @media (max-width: 1024px) { .dash-3col { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 640px)  { .dash-3col { grid-template-columns: 1fr; } }
+
+    /* Premium welcome header */
+    .student-welcome-header {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-dark) 50%, #0a1f15 100%);
+      border-radius: var(--radius-xl);
+      padding: var(--space-xl) var(--space-2xl);
+      margin-bottom: var(--space-xl);
+      color: #fff;
+    }
+    .student-welcome-header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -10%;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(212,160,23,0.2) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .student-welcome-header::after {
+      content: '';
+      position: absolute;
+      bottom: -30%;
+      left: 5%;
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .welcome-content { position: relative; z-index: 1; }
+    .welcome-title {
+      font-family: var(--font-display);
+      font-size: var(--text-2xl);
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .welcome-subtitle { font-size: var(--text-sm); color: rgba(255,255,255,0.75); }
+    .welcome-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(212,160,23,0.25);
+      border: 1px solid rgba(212,160,23,0.4);
+      color: #D4A017;
+      font-size: var(--text-xs);
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
+      margin-bottom: var(--space-sm);
+      letter-spacing: 0.05em;
+    }
+
+    /* Premium KPI card accent */
+    .kpi-card {
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi-card::after {
+      content: '';
+      position: absolute;
+      top: -20px;
+      right: -20px;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--bg-secondary);
+      opacity: 0.5;
+    }
+
+    /* Panel section accent line */
+    .panel-accent-line {
+      display: inline-block;
+      height: 3px;
+      width: 40px;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-gold));
+      border-radius: 999px;
+      margin-bottom: var(--space-sm);
+    }
+  </style>
+</head>
+<body>
+  <div class="panel-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar" role="navigation" aria-label="Student navigation">
+      <a href="index.html" class="sidebar-logo" aria-label="Back to homepage">
+        <div class="sidebar-logo-icon" aria-hidden="true">
+          <i data-lucide="shield" class="icon-sm"></i>
+        </div>
+        <div>
+          <div class="sidebar-school">DMHS</div>
+          <div class="sidebar-role">Student Portal</div>
+        </div>
+      </a>
+
+      <nav class="sidebar-nav" role="list">
+        <button class="nav-item active" data-panel="dashboard" role="listitem">
+          <div class="nav-item-icon"><i data-lucide="layout-dashboard"></i></div>
+          Dashboard
+        </button>
+        <button class="nav-item" data-panel="results" role="listitem">
+          <div class="nav-item-icon"><i data-lucide="bar-chart-2"></i></div>
+          My Results
+        </button>
+        <button class="nav-item" data-panel="attendance" role="listitem">
+          <div class="nav-item-icon"><i data-lucide="clipboard-check"></i></div>
+          Attendance
+        </button>
+        <button class="nav-item" data-panel="assignments" role="listitem">
+          <div class="nav-item-icon"><i data-lucide="file-text"></i></div>
+          Assignments
+        </button>
+        <button class="nav-item" data-panel="notices" role="listitem">
+          <div class="nav-item-icon"><i data-lucide="bell"></i></div>
+          Notices
+        </button>
+        <button class="nav-item" data-panel="timetable" role="listitem">
+          <div class="nav-item-icon"><i data-lucide="calendar"></i></div>
+          Timetable
+        </button>
+        <button class="nav-item" data-panel="profile" role="listitem">
+          <div class="nav-item-icon"><i data-lucide="user"></i></div>
+          My Profile
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-card">
+          <div class="user-avatar" id="student-avatar" aria-hidden="true">ST</div>
+          <div style="flex:1;min-width:0">
+            <div class="user-name" id="student-name-sidebar">Student</div>
+            <div class="user-role" id="student-class-sidebar">Class</div>
+          </div>
+          <button onclick="Auth.logout('index.html')" class="btn-icon" style="border:none;background:transparent;color:var(--error)" aria-label="Logout">
+            <i data-lucide="log-out" class="icon-sm"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebar-overlay" aria-hidden="true"></div>
+
+    <main class="panel-main" role="main">
+      <header class="panel-topbar" role="banner">
+        <div style="display:flex;align-items:center;gap:var(--space-md)">
+          <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle sidebar">
+            <i data-lucide="menu" class="icon-sm"></i>
+          </button>
+          <h1 class="panel-topbar-title" id="topbar-title">Dashboard</h1>
+        </div>
+        <div class="panel-topbar-actions">
+          <button class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle theme">
+            <i data-lucide="moon" class="icon-sm"></i>
+          </button>
+          <a href="index.html" class="btn btn-ghost btn-sm"><i data-lucide="external-link" class="icon-xs"></i> View Site</a>
+          <button onclick="Auth.logout('index.html')" class="btn btn-danger btn-sm">
+            <i data-lucide="log-out" class="icon-xs"></i> Logout
+          </button>
+        </div>
+      </header>
+
+      <div class="panel-content">
+
+        <!-- DASHBOARD -->
+        <div class="panel active page-enter" id="panel-dashboard">
+          <!-- Premium Welcome Header -->
+          <div class="student-welcome-header">
+            <div class="welcome-content">
+              <div class="welcome-badge"><i data-lucide="graduation-cap" class="icon-xs"></i> STUDENT PORTAL</div>
+              <div class="welcome-title" id="student-welcome">Welcome, Student</div>
+              <div class="welcome-subtitle" id="student-date">Loading...</div>
+            </div>
+          </div>
+
+          <div class="kpi-grid" id="student-kpi-grid"></div>
+
+          <div class="dash-3col">
+            <!-- Latest Result -->
+            <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-xl);padding:var(--space-xl);text-align:center;box-shadow:var(--shadow-sm)" id="dash-latest-result">
+              Loading...
+            </div>
+            <!-- Attendance -->
+            <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-xl);padding:var(--space-xl);box-shadow:var(--shadow-sm)" id="dash-att-summary">
+              Loading...
+            </div>
+            <!-- Upcoming Due -->
+            <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-xl);padding:var(--space-xl);box-shadow:var(--shadow-sm)" id="dash-upcoming">
+              Loading...
+            </div>
+          </div>
+
+          <div style="margin-top:var(--space-xl);background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-xl);padding:var(--space-xl);box-shadow:var(--shadow-sm)">
+            <div style="font-size:var(--text-base);font-weight:700;margin-bottom:var(--space-lg);display:flex;align-items:center;gap:var(--space-sm);color:var(--text-primary)">
+              <i data-lucide="bell" class="icon-sm" style="color:var(--accent-primary)"></i> Recent Notices
+            </div>
+            <div id="student-notices-quick"></div>
+          </div>
+        </div>
+
+        <!-- MY RESULTS -->
+        <div class="panel" id="panel-results">
+          <div class="panel-header">
+            <div>
+              <div class="panel-accent-line"></div>
+              <h2 class="panel-title">My Results</h2>
+              <p class="panel-subtitle">View all your published examination results</p>
+            </div>
+          </div>
+
+          <!-- Filter -->
+          <div style="display:flex;gap:var(--space-sm);margin-bottom:var(--space-xl);flex-wrap:wrap">
+            <select id="res-filter-exam" class="form-select" style="max-width:180px" onchange="loadStudentResults()">
+              <option value="">All Exams</option>
+              <option value="Annual">Annual</option><option value="Half-Yearly">Half-Yearly</option><option value="Monthly">Monthly</option>
+            </select>
+            <select id="res-filter-year" class="form-select" style="max-width:120px" onchange="loadStudentResults()">
+              <option value="">All Years</option>
+              <option value="2025">2025</option><option value="2024">2024</option><option value="2023">2023</option>
+            </select>
+          </div>
+
+          <div id="student-results-list"></div>
+        </div>
+
+        <!-- ATTENDANCE -->
+        <div class="panel" id="panel-attendance">
+          <div class="panel-header">
+            <div>
+              <div class="panel-accent-line"></div>
+              <h2 class="panel-title">My Attendance</h2>
+              <p class="panel-subtitle">View your attendance history and records</p>
+            </div>
+          </div>
+          <div id="student-attendance-content"></div>
+        </div>
+
+        <!-- ASSIGNMENTS -->
+        <div class="panel" id="panel-assignments">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Assignments</h2>
+              <p class="panel-subtitle">View and track your class assignments</p>
+            </div>
+          </div>
+          <div id="student-assignments-list"></div>
+        </div>
+
+        <!-- NOTICES -->
+        <div class="panel" id="panel-notices">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Notice Board</h2>
+              <p class="panel-subtitle">All school notices and announcements</p>
+            </div>
+          </div>
+          <div style="display:flex;gap:var(--space-sm);margin-bottom:var(--space-lg);flex-wrap:wrap">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="Academic">Academic</button>
+            <button class="filter-btn" data-filter="Exam">Exam</button>
+            <button class="filter-btn" data-filter="Event">Events</button>
+            <button class="filter-btn" data-filter="Holiday">Holiday</button>
+          </div>
+          <div id="student-notices-list" style="display:flex;flex-direction:column;gap:var(--space-sm)"></div>
+        </div>
+
+        <!-- TIMETABLE -->
+        <div class="panel" id="panel-timetable">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">My Timetable</h2>
+              <p class="panel-subtitle">Your weekly class schedule</p>
+            </div>
+          </div>
+          <div id="student-timetable" style="overflow-x:auto">Loading...</div>
+        </div>
+
+        <!-- PROFILE -->
+        <div class="panel" id="panel-profile">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">My Profile</h2>
+              <p class="panel-subtitle">Your student information</p>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-xl)">
+            <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-xl);padding:var(--space-xl)" id="student-profile-card"></div>
+            <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-xl);padding:var(--space-xl)">
+              <h3 style="font-size:var(--text-lg);font-weight:700;margin-bottom:var(--space-xl)">
+                <i data-lucide="lock" class="icon-sm" style="vertical-align:middle;margin-right:4px"></i> Change Password
+              </h3>
+              <form id="student-pwd-form" novalidate>
+                <div class="form-group">
+                  <label class="form-label">Current Password</label>
+                  <input type="password" id="s-pwd-current" class="form-input" placeholder="Current password">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">New Password</label>
+                  <input type="password" id="s-pwd-new" class="form-input" placeholder="Min. 6 characters">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Confirm New Password</label>
+                  <input type="password" id="s-pwd-confirm" class="form-input" placeholder="Re-enter">
+                </div>
+                <div class="field-error" id="s-pwd-error"></div>
+                <button type="submit" class="btn btn-primary">
+                  <i data-lucide="key" class="icon-xs"></i> Update Password
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+  // ─── Session (auth guard already ran in <head>)
+  const session = JSON.parse(sessionStorage.getItem('dmhs_session'));
+
+  let studentData = null;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    lucide.createIcons();
+    UI.initToasts();
+    ThemeManager.bindToggle('theme-toggle');
+
+    // Get student from DB
+    const students = DB.getAll(DB_KEYS.STUDENTS);
+    studentData = students.find(s => s.id === session.studentId) || students[0];
+
+    if (studentData) {
+      const ini = studentData.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+      document.getElementById('student-avatar').textContent = ini;
+      document.getElementById('student-name-sidebar').textContent = studentData.name;
+      document.getElementById('student-class-sidebar').textContent = `Class ${studentData.class}-${studentData.section}`;
+      document.getElementById('student-welcome').textContent = `Welcome, ${studentData.name.split(' ')[0]}`;
+    }
+
+    document.getElementById('student-date').textContent =
+      new Date().toLocaleDateString('en-BD', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+    // Nav
+    document.querySelectorAll('.nav-item[data-panel]').forEach(item => {
+      item.addEventListener('click', () => {
+        Router.showPanel(item.dataset.panel);
+        document.getElementById('topbar-title').textContent = item.textContent.trim();
+        loadStudentPanel(item.dataset.panel);
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('sidebar-overlay').classList.remove('visible');
+      });
+    });
+
+    document.getElementById('sidebar-toggle').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebar-overlay').classList.toggle('visible');
+    });
+    document.getElementById('sidebar-overlay').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebar-overlay').classList.remove('visible');
+    });
+
+    // Notice filters
+    document.querySelectorAll('[data-filter]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        loadStudentNotices(btn.dataset.filter);
+      });
+    });
+
+    loadStudentDashboard();
+    loadStudentResults();
+    loadStudentAttendance();
+    loadStudentAssignments();
+    loadStudentNotices('all');
+    renderStudentTimetable();
+    loadStudentProfile();
+
+    // Restore panel from URL hash (e.g. student.html#results)
+    const hash = window.location.hash.replace('#', '');
+    if (hash && document.getElementById(`panel-${hash}`)) {
+      Router.showPanel(hash);
+      const navItem = document.querySelector(`.nav-item[data-panel="${hash}"]`);
+      if (navItem) document.getElementById('topbar-title').textContent = navItem.textContent.trim();
+      loadStudentPanel(hash);
+    }
+  });
+
+  function loadStudentPanel(panel) {
+    if (panel === 'dashboard')   loadStudentDashboard();
+    if (panel === 'results')     loadStudentResults();
+    if (panel === 'attendance')  loadStudentAttendance();
+    if (panel === 'assignments') loadStudentAssignments();
+    if (panel === 'notices')     loadStudentNotices('all');
+    if (panel === 'timetable')   renderStudentTimetable();
+    if (panel === 'profile')     loadStudentProfile();
+  }
+
+  function loadStudentDashboard() {
+    if (!studentData) return;
+    const results     = DB.getAll(DB_KEYS.RESULTS).filter(r => r.studentId === studentData.id && r.published);
+    const att         = DB.getAll(DB_KEYS.ATTENDANCE).filter(a => a.studentId === studentData.id);
+    const assignments = DB.getAll(DB_KEYS.ASSIGNMENTS);
+    const notices     = DB.getAll(DB_KEYS.NOTICES).filter(n => n.published);
+
+    const attPct  = att.length ? ((att.filter(a => a.status === 'Present').length / att.length) * 100).toFixed(1) : 'N/A';
+    const latestResult = results[results.length - 1];
+    const latestGPA    = latestResult ? GRADING.calculateGPA(latestResult.subjects) : 'N/A';
+
+    document.getElementById('student-kpi-grid').innerHTML = `
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-green"><i data-lucide="hash" class="icon-md"></i></div>
+        <div>
+          <div class="kpi-value" style="font-family:var(--font-mono)">${studentData.roll}</div>
+          <div class="kpi-label">My Roll Number</div>
+          <div class="kpi-change positive">Class ${studentData.class}-${studentData.section}</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-gold"><i data-lucide="trending-up" class="icon-md"></i></div>
+        <div>
+          <div class="kpi-value" style="font-family:var(--font-mono)">${latestGPA}</div>
+          <div class="kpi-label">Latest GPA</div>
+          <div class="kpi-change positive">${latestResult ? `${latestResult.examType} ${latestResult.year}` : 'No results yet'}</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-blue"><i data-lucide="clipboard-check" class="icon-md"></i></div>
+        <div>
+          <div class="kpi-value">${attPct}${attPct !== 'N/A' ? '%' : ''}</div>
+          <div class="kpi-label">Attendance Rate</div>
+          <div class="kpi-change ${parseFloat(attPct) >= 75 ? 'positive' : 'negative'}">${att.length} records</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-red"><i data-lucide="file-text" class="icon-md"></i></div>
+        <div>
+          <div class="kpi-value">${assignments.length}</div>
+          <div class="kpi-label">Assignments</div>
+          <div class="kpi-change positive">${assignments.filter(a=>!a.submitted).length} pending</div>
+        </div>
+      </div>
+    `;
+    lucide.createIcons();
+
+    // Latest Result Card
+    if (latestResult) {
+      const gpa = GRADING.calculateGPA(latestResult.subjects);
+      const gpaNum = parseFloat(gpa);
+      const pct = (gpaNum / 5) * 100;
+      document.getElementById('dash-latest-result').innerHTML = `
+        <div style="font-size:var(--text-sm);font-weight:700;color:var(--text-muted);margin-bottom:var(--space-md)">
+          <i data-lucide="bar-chart-2" class="icon-xs" style="vertical-align:middle;margin-right:4px"></i>
+          Latest Result
+        </div>
+        <div class="gpa-ring">
+          <svg width="120" height="120" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="50" fill="none" stroke="var(--bg-secondary)" stroke-width="12"/>
+            <circle cx="60" cy="60" r="50" fill="none" stroke="var(--accent-primary)" stroke-width="12"
+              stroke-dasharray="${2 * Math.PI * 50}" stroke-dashoffset="${2 * Math.PI * 50 * (1 - pct / 100)}"
+              stroke-linecap="round" style="transition:stroke-dashoffset 1s ease"/>
+          </svg>
+          <div class="gpa-ring-center">
+            <div class="gpa-ring-value">${gpa}</div>
+            <div class="gpa-ring-label">GPA</div>
+          </div>
+        </div>
+        <div style="margin-top:var(--space-md)">
+          <div style="font-weight:700;color:var(--text-primary)">${latestResult.examType} ${latestResult.year}</div>
+          <div style="font-size:var(--text-sm);color:var(--text-secondary)">Class ${latestResult.class}-${latestResult.section}</div>
+          <div style="margin-top:var(--space-sm)">${GRADING.isPassed(latestResult.subjects) ?
+            `<span class="badge badge-green">PASSED</span>` :
+            `<span class="badge badge-red">FAILED</span>`
+          }</div>
+        </div>
+      `;
+    } else {
+      document.getElementById('dash-latest-result').innerHTML = `
+        <div style="text-align:center;color:var(--text-muted);padding:var(--space-xl)">
+          <i data-lucide="bar-chart-2" style="width:48px;height:48px;opacity:0.3;margin-bottom:var(--space-md)"></i>
+          <p>No published results yet.</p>
+        </div>
+      `;
+    }
+
+    // Attendance Summary
+    const present = att.filter(a => a.status === 'Present').length;
+    const absent  = att.filter(a => a.status === 'Absent').length;
+    const late    = att.filter(a => a.status === 'Late').length;
+    document.getElementById('dash-att-summary').innerHTML = `
+      <div style="font-size:var(--text-sm);font-weight:700;color:var(--text-muted);margin-bottom:var(--space-md);display:flex;align-items:center;gap:4px">
+        <i data-lucide="clipboard-check" class="icon-xs"></i> Attendance Summary
+      </div>
+      ${att.length ? `
+        <div style="display:flex;flex-direction:column;gap:var(--space-sm)">
+          ${[
+            { label: 'Present', val: present, total: att.length, color: 'var(--success)', bg: 'var(--success-bg)' },
+            { label: 'Absent',  val: absent,  total: att.length, color: 'var(--error)',   bg: 'var(--error-bg)' },
+            { label: 'Late',    val: late,    total: att.length, color: 'var(--warning)',  bg: 'var(--warning-bg)' },
+          ].map(item => `
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:var(--text-sm);margin-bottom:4px">
+                <span style="color:${item.color};font-weight:600">${item.label}</span>
+                <span style="font-family:var(--font-mono);font-weight:700">${item.val} / ${item.total}</span>
+              </div>
+              <div style="height:8px;background:var(--bg-secondary);border-radius:999px;overflow:hidden">
+                <div style="height:100%;width:${(item.val/item.total*100).toFixed(0)}%;background:${item.color};border-radius:999px;transition:width 1s ease"></div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        <div style="margin-top:var(--space-md);text-align:center;font-family:var(--font-mono);font-size:var(--text-xl);font-weight:700;color:${parseFloat(attPct)>=75?'var(--success)':'var(--error)'}">
+          ${attPct}%
+          <div style="font-size:var(--text-xs);color:var(--text-muted);font-family:var(--font-body)">Overall Rate</div>
+        </div>
+      ` : '<p style="color:var(--text-muted);font-size:var(--text-sm)">No attendance records yet.</p>'}
+    `;
+
+    // Upcoming Assignments
+    const upcoming = assignments.filter(a => !a.submitted && a.dueDate >= new Date().toISOString().split('T')[0]).slice(0, 5);
+    document.getElementById('dash-upcoming').innerHTML = `
+      <div style="font-size:var(--text-sm);font-weight:700;color:var(--text-muted);margin-bottom:var(--space-md);display:flex;align-items:center;gap:4px">
+        <i data-lucide="file-text" class="icon-xs"></i> Upcoming Due
+      </div>
+      ${upcoming.length ? upcoming.map(a => `
+        <div style="padding:var(--space-sm) 0;border-bottom:1px solid var(--border-light);display:flex;gap:var(--space-sm);align-items:center">
+          <i data-lucide="file-text" class="icon-sm" style="color:var(--accent-primary);flex-shrink:0"></i>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:var(--text-sm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${UI._escapeHtml(a.title)}</div>
+            <div style="font-size:var(--text-xs);color:var(--text-muted)">${a.class} · ${UI.formatDate(a.dueDate, {month:'short',day:'numeric'})}</div>
+          </div>
+        </div>
+      `).join('') : '<p style="color:var(--text-muted);font-size:var(--text-sm)">No upcoming assignments.</p>'}
+    `;
+
+    // Recent Notices
+    const recentNotices = notices.slice(0, 4);
+    document.getElementById('student-notices-quick').innerHTML = recentNotices.map(n => `
+      <div style="display:flex;align-items:center;gap:var(--space-sm);padding:var(--space-xs) 0;border-bottom:1px solid var(--border-light)">
+        ${UI.categoryBadge(n.category)}
+        <span style="flex:1;font-size:var(--text-sm);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${UI._escapeHtml(n.title)}</span>
+        <span style="font-size:var(--text-xs);color:var(--text-muted);flex-shrink:0">${UI.relativeTime(n.date)}</span>
+      </div>
+    `).join('') || '<p style="color:var(--text-muted);font-size:var(--text-sm)">No notices.</p>';
+
+    lucide.createIcons();
+  }
+
+  function loadStudentResults() {
+    if (!studentData) return;
+    const examFilter = document.getElementById('res-filter-exam')?.value;
+    const yearFilter = document.getElementById('res-filter-year')?.value;
+    let results = DB.getAll(DB_KEYS.RESULTS).filter(r => r.studentId === studentData.id && r.published);
+    if (examFilter) results = results.filter(r => r.examType === examFilter);
+    if (yearFilter) results = results.filter(r => r.year === yearFilter);
+    const list = document.getElementById('student-results-list');
+
+    if (!results.length) {
+      list.innerHTML = `<div style="text-align:center;padding:var(--space-2xl);color:var(--text-muted)">
+        <i data-lucide="bar-chart-2" style="width:48px;height:48px;opacity:0.3;margin-bottom:var(--space-md)"></i>
+        <p>No published results found.</p>
+      </div>`;
+      lucide.createIcons();
+      return;
+    }
+
+    list.innerHTML = results.map(r => {
+      const gpa    = GRADING.calculateGPA(r.subjects);
+      const total  = GRADING.totalMarks(r.subjects);
+      const avg    = GRADING.averageMarks(r.subjects);
+      const passed = GRADING.isPassed(r.subjects);
+      return `
+        <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-xl);overflow:hidden;margin-bottom:var(--space-xl)">
+          <!-- Result Header -->
+          <div style="background:linear-gradient(135deg,var(--accent-primary),var(--accent-dark));padding:var(--space-xl);display:flex;align-items:center;gap:var(--space-xl);flex-wrap:wrap">
+            <div style="width:80px;height:80px;border-radius:var(--radius-full);background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.3);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+              <div style="font-family:var(--font-mono);font-size:var(--text-2xl);font-weight:700;color:#D4A017;line-height:1">${gpa}</div>
+              <div style="font-size:var(--text-xs);color:rgba(255,255,255,0.7)">GPA</div>
+            </div>
+            <div>
+              <div style="font-family:var(--font-display);font-size:var(--text-2xl);font-weight:700;color:#fff;margin-bottom:4px">${r.examType} Examination ${r.year}</div>
+              <div style="font-size:var(--text-sm);color:rgba(255,255,255,0.8)">Class ${r.class}-${r.section} · ${studentData.name}</div>
+              <div style="margin-top:var(--space-sm)">
+                <span class="badge" style="background:${passed?'rgba(255,255,255,0.2)':'rgba(231,76,60,0.4)'};color:#fff">${passed?'PASSED':'FAILED'}</span>
+              </div>
+            </div>
+            <div style="margin-left:auto;text-align:right;color:#fff">
+              <div style="font-size:var(--text-sm);opacity:0.7">Total Marks</div>
+              <div style="font-family:var(--font-mono);font-size:var(--text-3xl);font-weight:700;color:#D4A017">${total}</div>
+              <div style="font-size:var(--text-xs);opacity:0.7">Average: ${avg}</div>
+            </div>
+          </div>
+          <!-- Subject Rows -->
+          <div style="padding:var(--space-lg)">
+            <div style="font-size:var(--text-sm);font-weight:700;color:var(--text-muted);margin-bottom:var(--space-md)">SUBJECT-WISE MARKS</div>
+            ${r.subjects.map(s => `
+              <div class="subject-result-row">
+                <div style="font-weight:600;min-width:130px;font-size:var(--text-sm)">${UI._escapeHtml(s.name)}</div>
+                <div class="progress-pill">
+                  <div class="progress-fill-pill" style="width:${s.marks}%"></div>
+                </div>
+                <div class="marks-pill" style="color:${s.marks>=80?'var(--success)':s.marks>=60?'var(--info)':s.marks>=33?'var(--warning)':'var(--error)'}">${s.marks}</div>
+                ${UI.gradeDisplay(s.marks)}
+              </div>
+            `).join('')}
+          </div>
+          <div style="padding:var(--space-md) var(--space-lg);background:var(--bg-secondary);border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:var(--text-sm);color:var(--text-muted)">Overall GPA: <strong style="font-family:var(--font-mono);color:var(--accent-primary);font-size:var(--text-lg)">${gpa}</strong> / 5.00</span>
+            <button class="btn btn-ghost btn-sm" onclick="window.print()">
+              <i data-lucide="printer" class="icon-xs"></i> Print
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+    lucide.createIcons();
+  }
+
+  window.loadStudentResults = loadStudentResults;
+
+  function loadStudentAttendance() {
+    if (!studentData) return;
+    const att     = DB.getAll(DB_KEYS.ATTENDANCE).filter(a => a.studentId === studentData.id);
+    const container = document.getElementById('student-attendance-content');
+    const present = att.filter(a => a.status === 'Present').length;
+    const absent  = att.filter(a => a.status === 'Absent').length;
+    const late    = att.filter(a => a.status === 'Late').length;
+    const attPct  = att.length ? ((present / att.length) * 100).toFixed(1) : 0;
+
+    container.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-md);margin-bottom:var(--space-xl)">
+        <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-xl);padding:var(--space-xl);text-align:center">
+          <div style="font-family:var(--font-mono);font-size:var(--text-3xl);font-weight:700;color:var(--accent-primary)">${att.length}</div>
+          <div style="font-size:var(--text-sm);color:var(--text-muted)">Total Days</div>
+        </div>
+        <div style="background:var(--success-bg);border:1px solid var(--border);border-radius:var(--radius-xl);padding:var(--space-xl);text-align:center">
+          <div style="font-family:var(--font-mono);font-size:var(--text-3xl);font-weight:700;color:var(--success)">${present}</div>
+          <div style="font-size:var(--text-sm);color:var(--success)">Present</div>
+        </div>
+        <div style="background:var(--error-bg);border:1px solid var(--border);border-radius:var(--radius-xl);padding:var(--space-xl);text-align:center">
+          <div style="font-family:var(--font-mono);font-size:var(--text-3xl);font-weight:700;color:var(--error)">${absent}</div>
+          <div style="font-size:var(--text-sm);color:var(--error)">Absent</div>
+        </div>
+        <div style="background:var(--warning-bg);border:1px solid var(--border);border-radius:var(--radius-xl);padding:var(--space-xl);text-align:center">
+          <div style="font-family:var(--font-mono);font-size:var(--text-3xl);font-weight:700;color:var(--warning)">${late}</div>
+          <div style="font-size:var(--text-sm);color:var(--warning)">Late</div>
+        </div>
+      </div>
+
+      <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-xl);padding:var(--space-xl);margin-bottom:var(--space-xl)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-md)">
+          <div style="font-weight:700">Overall Attendance Rate</div>
+          <div style="font-family:var(--font-mono);font-size:var(--text-2xl);font-weight:700;color:${parseFloat(attPct)>=75?'var(--success)':'var(--error)'}">${attPct}%</div>
+        </div>
+        <div style="height:12px;background:var(--bg-secondary);border-radius:999px;overflow:hidden">
+          <div style="height:100%;width:${attPct}%;background:${parseFloat(attPct)>=75?'linear-gradient(90deg,var(--success),var(--accent-primary))':'var(--error)'};border-radius:999px;transition:width 1s ease"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:var(--text-xs);color:var(--text-muted)">
+          <span>0%</span>
+          <span style="color:var(--warning)">75% required</span>
+          <span>100%</span>
+        </div>
+        ${parseFloat(attPct) < 75 ? `<div style="margin-top:var(--space-md);padding:var(--space-md);background:var(--error-bg);border-radius:var(--radius-md);font-size:var(--text-sm);color:var(--error)">
+          Your attendance is below 75%. Please attend classes regularly.
+        </div>` : ''}
+      </div>
+
+      ${att.length ? `
+        <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-xl);padding:var(--space-xl)">
+          <div style="font-weight:700;margin-bottom:var(--space-md)">Recent Records</div>
+          <div style="display:flex;flex-direction:column;gap:var(--space-xs)">
+            ${att.slice(-20).reverse().map(a => `
+              <div style="display:flex;align-items:center;gap:var(--space-md);padding:var(--space-sm) var(--space-md);background:var(--bg-secondary);border-radius:var(--radius-md)">
+                <span style="font-family:var(--font-mono);font-size:var(--text-sm);color:var(--text-secondary);min-width:100px">${UI.formatDate(a.date, {month:'short',day:'numeric',year:'numeric'})}</span>
+                <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-muted)">${a.classId || '—'}</span>
+                <span class="badge ${a.status==='Present'?'badge-green':a.status==='Absent'?'badge-red':'badge-gold'}" style="margin-left:auto">${a.status}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : '<div style="text-align:center;padding:var(--space-2xl);color:var(--text-muted)">No attendance records found.</div>'}
+    `;
+  }
+
+  function loadStudentAssignments() {
+    const allAssignments = DB.getAll(DB_KEYS.ASSIGNMENTS);
+    // Filter by student's class section (e.g. '10A'), fallback to all if no match
+    const studentClass = studentData ? `${studentData.class}${studentData.section}` : null;
+    const assignments = studentClass
+      ? allAssignments.filter(a => a.class === studentClass || a.class === studentData?.class)
+      : allAssignments;
+    const list = document.getElementById('student-assignments-list');
+    if (!assignments.length) {
+      list.innerHTML = `<div style="text-align:center;padding:var(--space-2xl);color:var(--text-muted)">
+        <i data-lucide="file-text" style="width:48px;height:48px;opacity:0.3;margin-bottom:var(--space-md)"></i>
+        <p>No assignments posted yet.</p>
+      </div>`;
+      lucide.createIcons();
+      return;
+    }
+
+    list.innerHTML = assignments.map(a => `
+      <div class="assignment-item">
+        <div style="width:48px;height:48px;background:${a.submitted ? 'var(--success-bg)' : 'var(--warning-bg)'};color:${a.submitted ? 'var(--success)' : 'var(--warning)'};border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i data-lucide="${a.submitted ? 'check-circle' : 'file-text'}" class="icon-md"></i>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;color:var(--text-primary)">${UI._escapeHtml(a.title)}</div>
+          <div style="font-size:var(--text-sm);color:var(--text-secondary);margin-top:2px">${UI._escapeHtml(a.subject)} · ${a.class}</div>
+          ${a.description ? `<div style="font-size:var(--text-xs);color:var(--text-muted);margin-top:4px">${UI._escapeHtml(a.description.substring(0,80))}...</div>` : ''}
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-muted)">Due</div>
+          <div style="font-weight:600;font-size:var(--text-sm);color:${a.dueDate < new Date().toISOString().split('T')[0] ? 'var(--error)' : 'var(--text-primary)'}">${UI.formatDate(a.dueDate, {month:'short',day:'numeric'})}</div>
+          <span class="badge ${a.submitted ? 'badge-green' : 'badge-orange'}" style="margin-top:4px">${a.submitted ? 'Submitted' : 'Pending'}</span>
+        </div>
+      </div>
+    `).join('');
+    lucide.createIcons();
+  }
+
+  function loadStudentNotices(filter = 'all') {
+    let notices = DB.getAll(DB_KEYS.NOTICES).filter(n => n.published);
+    if (filter !== 'all') notices = notices.filter(n => n.category === filter);
+    const list = document.getElementById('student-notices-list');
+    const iconMap = { Exam:{ icon:'file-text',cls:'exam' }, Holiday:{ icon:'sun',cls:'holiday' }, Event:{ icon:'calendar',cls:'event' }, Academic:{ icon:'book-open',cls:'academic' } };
+    list.innerHTML = notices.map(n => {
+      const ic = iconMap[n.category] || { icon:'bell', cls:'academic' };
+      return `
+        <div class="notice-card-student" onclick="openStudentNoticeDetail('${n.id}')">
+          <div style="display:flex;gap:var(--space-md);align-items:flex-start">
+            <div class="notice-icon ${ic.cls}" style="flex-shrink:0"><i data-lucide="${ic.icon}" class="icon-sm"></i></div>
+            <div style="flex:1">
+              <div style="font-weight:700;color:var(--text-primary)">${UI._escapeHtml(n.title)}</div>
+              <p style="font-size:var(--text-sm);color:var(--text-secondary);margin-top:4px">${UI._escapeHtml(n.content.substring(0,120))}...</p>
+              <div style="display:flex;gap:var(--space-sm);align-items:center;margin-top:var(--space-sm)">
+                ${UI.categoryBadge(n.category)}
+                <span style="font-size:var(--text-xs);color:var(--text-muted)">${UI.formatDate(n.date, {month:'short',day:'numeric',year:'numeric'})}</span>
+                <span style="margin-left:auto;font-size:var(--text-xs);color:var(--accent-primary);font-weight:600">Read More</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('') || '<div style="text-align:center;padding:var(--space-2xl);color:var(--text-muted)">No notices found.</div>';
+    lucide.createIcons();
+  }
+
+  function openStudentNoticeDetail(id) {
+    const notice = DB.getAll(DB_KEYS.NOTICES).find(n => n.id === id);
+    if (!notice) return;
+    UI.openModal(notice.title, `
+      <div style="display:flex;gap:var(--space-md);align-items:center;margin-bottom:var(--space-lg)">
+        ${UI.categoryBadge(notice.category)}
+        <span style="font-size:var(--text-sm);color:var(--text-muted)">${UI.formatDate(notice.date)}</span>
+        <span style="font-size:var(--text-sm);color:var(--text-muted)">Posted by: ${UI._escapeHtml(notice.author)}</span>
+      </div>
+      <p style="line-height:1.8;color:var(--text-secondary)">${UI._escapeHtml(notice.content)}</p>
+    `, [{ label: 'Close', variant: 'ghost', onClick: () => UI.closeModal() }]);
+  }
+
+  window.openStudentNoticeDetail = openStudentNoticeDetail;
+
+  function renderStudentTimetable() {
+    const cls = studentData?.class || '10';
+    const sec = studentData?.section || 'A';
+    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday'];
+    const periods = ['8:00–8:45','8:45–9:30','9:45–10:30','10:30–11:15','11:30–12:15','12:15–1:00'];
+    const subjects = ['Bangla','English','Mathematics','Science','Social Science','ICT'];
+    const schedule = {
+      'Sunday':    [0,1,2,3,4,5],
+      'Monday':    [2,0,3,1,5,4],
+      'Tuesday':   [1,2,4,0,3,5],
+      'Wednesday': [3,5,1,2,0,4],
+      'Thursday':  [4,3,0,5,2,1],
+      'Friday':    [null,null,null,null,null,null],
+    };
+    const container = document.getElementById('student-timetable');
+    const colors = ['#1B4332','#1A5276','#B7950B','#117A65','#7D3C98','#C0392B'];
+
+    let html = `<div style="display:grid;grid-template-columns:80px repeat(6,1fr);border:1px solid var(--border);border-radius:var(--radius-xl);overflow:hidden">`;
+    html += `<div style="background:var(--bg-secondary);padding:var(--space-sm);text-align:center;font-size:var(--text-xs);font-weight:700;color:var(--text-muted)">Period</div>`;
+    days.forEach(d => {
+      const isToday = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()] === d.substring(0,3);
+      html += `<div style="background:${isToday ? 'var(--accent-primary)' : 'var(--bg-secondary)'};color:${isToday ? '#fff' : 'var(--text-muted)'};padding:var(--space-sm);text-align:center;font-size:var(--text-xs);font-weight:700">${d.substring(0,3)}</div>`;
+    });
+
+    periods.forEach((period, pi) => {
+      html += `<div style="background:var(--bg-secondary);padding:var(--space-sm);text-align:center;font-size:10px;font-family:var(--font-mono);color:var(--text-muted);border-right:1px solid var(--border);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:center">${period}</div>`;
+      days.forEach(day => {
+        const subIdx = schedule[day]?.[pi];
+        const isToday = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()] === day.substring(0,3);
+        if (subIdx !== null && subIdx !== undefined) {
+          const sub = subjects[subIdx];
+          html += `<div style="padding:4px;border-right:1px solid var(--border-light);border-bottom:1px solid var(--border-light);min-height:56px;background:${isToday ? 'rgba(27,67,50,0.04)' : 'transparent'}">
+            <div style="background:${colors[subIdx]};border-radius:4px;padding:4px 6px;height:100%;min-height:48px;display:flex;flex-direction:column;justify-content:center">
+              <div style="font-weight:700;font-size:10px;color:#fff">${sub}</div>
+              <div style="font-size:9px;color:rgba(255,255,255,0.7)">Class ${cls}-${sec}</div>
+            </div>
+          </div>`;
+        } else {
+          html += `<div style="border-right:1px solid var(--border-light);border-bottom:1px solid var(--border-light);min-height:56px;background:${isToday ? 'rgba(27,67,50,0.04)' : 'transparent'}"></div>`;
+        }
+      });
+    });
+
+    html += '</div>';
+    container.innerHTML = html;
+  }
+
+  function loadStudentProfile() {
+    if (!studentData) return;
+    const ini = studentData.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+    const card = document.getElementById('student-profile-card');
+    card.innerHTML = `
+      <div style="text-align:center;margin-bottom:var(--space-xl)">
+        <div style="width:80px;height:80px;border-radius:var(--radius-full);background:linear-gradient(135deg,#1B4332,#D4A017);display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--font-display);font-size:var(--text-2xl);font-weight:700;margin:0 auto var(--space-md)">${ini}</div>
+        <h3 style="font-size:var(--text-xl);font-weight:700">${UI._escapeHtml(studentData.name)}</h3>
+        <p style="color:var(--text-secondary);font-size:var(--text-sm)">Class ${studentData.class}-${studentData.section} · Roll: ${studentData.roll}</p>
+      </div>
+      <table style="width:100%;font-size:var(--text-sm)">
+        ${[
+          ['Student ID', studentData.id],
+          ['Class', `${studentData.class} — Section ${studentData.section}`],
+          ['Roll Number', studentData.roll],
+          ['Date of Birth', UI.formatDate(studentData.dob)],
+          ['Blood Group', studentData.bloodGroup || '—'],
+          ['Guardian', studentData.guardian],
+          ['Contact', studentData.contact],
+          ['Address', studentData.address || '—'],
+          ['Enrolled Year', studentData.joinYear],
+        ].map(([k,v]) => `<tr style="border-bottom:1px solid var(--border-light)">
+          <td style="padding:var(--space-sm);color:var(--text-muted);font-weight:600;width:120px">${k}</td>
+          <td style="padding:var(--space-sm);font-family:${k==='Student ID'||k==='Roll Number'?'var(--font-mono)':'var(--font-body)'}">${UI._escapeHtml(String(v))}</td>
+        </tr>`).join('')}
+      </table>
+    `;
+
+    document.getElementById('student-pwd-form').onsubmit = (e) => {
+      e.preventDefault();
+      const curr = document.getElementById('s-pwd-current').value;
+      const nw   = document.getElementById('s-pwd-new').value;
+      const cnf  = document.getElementById('s-pwd-confirm').value;
+      const err  = document.getElementById('s-pwd-error');
+      if (nw !== cnf) { err.textContent = 'Passwords do not match.'; return; }
+      const res = Auth.changePassword(curr, nw);
+      if (!res.success) { err.textContent = res.error; return; }
+      err.textContent = '';
+      UI.showToast('Password updated!', 'success');
+      document.getElementById('student-pwd-form').reset();
+    };
+  }
+  </script>
+</body>
+</html>
