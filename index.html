@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Dhaka Model High School — A leading institution of academic excellence in Bangladesh since 1985. SSC programs, experienced faculty, 98% pass rate.">
-  <meta name="keywords" content="Dhaka Model High School, DMHS, Bangladesh school, SSC, education, Mirpur Dhaka">
-  <meta name="author" content="Dhaka Model High School">
-  <meta property="og:title" content="Dhaka Model High School | Excellence in Education Since 1985">
+  <meta name="description" content="LHUMB Nagar Academy — A leading institution of academic excellence in Bangladesh since 1994. SSC programs, experienced faculty, 98% pass rate.">
+  <meta name="keywords" content="LHUMB Nagar Academy, LNA, Bangladesh school, SSC, education, Ramjong,laxmipur">
+  <meta name="author" content="LHUMB Nagar Academy">
+  <meta property="og:title" content="LHUMB Nagar Academy | Excellence in Education Since 1994">
   <meta property="og:description" content="A leading institution of academic excellence in Bangladesh with 2400+ students and 98% pass rate.">
   <meta property="og:type" content="website">
   <title>LHUMB Nagar Academy | Excellence in Education Since 1994</title>
@@ -856,17 +856,19 @@
     .teacher-card:hover::before { transform: scaleX(1); }
 
     .teacher-avatar {
-      width: 80px; height: 80px;
-      border-radius: var(--radius-full);
-      margin: 0 auto var(--space-md);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: var(--font-display);
-      font-size: var(--text-2xl);
-      font-weight: 700;
-      color: #fff;
-    }
+     
+    width:90px;
+    height:90px;
+    border-radius:50%;
+    overflow:hidden;
+    margin:0 auto 15px;
+}
+.teacher-avatar img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+    
 
     .teacher-name {
       font-size: var(--text-base);
@@ -902,6 +904,7 @@
       opacity: 1;
       max-height: 100px;
     }
+   
 
     /* ─── Notice Board ──────────────────────────────── */
     .notice-filters {
@@ -1789,7 +1792,7 @@
   <!-- ─── Navbar ─────────────────────────────────────────────────────────────── -->
   <nav id="main-navbar" role="navigation" aria-label="Main navigation">
     <div class="navbar-inner">
-      <a href="index.html" class="navbar-logo" aria-label="Dhaka Model High School Home">
+      <a href="index.html" class="navbar-logo" aria-label="LHUMB Nagar Academy Home">
         <div class="navbar-logo-icon" aria-hidden="true">
           <i data-lucide="shield" class="icon-md"></i>
         </div>
@@ -1945,7 +1948,7 @@
           <!-- Visual -->
           <div class="about-visual reveal">
             <div class="about-image-card">
-              <div class="about-school-emblem" aria-hidden="true">DMHS</div>
+              <div class="about-school-emblem" aria-hidden="true">LNA</div>
               <i data-lucide="shield" style="width:80px;height:80px;color:rgba(255,255,255,0.2);position:relative;z-index:1" aria-hidden="true"></i>
               <div style="position:relative;z-index:1;text-align:center;color:#fff;padding: 0 var(--space-xl)">
                 <div style="font-family:var(--font-display);font-size:var(--text-2xl);font-weight:700;margin-bottom:var(--space-xs)">LHUMB Nagar Academy</div>
@@ -2093,7 +2096,7 @@
       <div class="container">
         <div class="section-header">
           <div class="section-label reveal"><i data-lucide="users" class="icon-xs" aria-hidden="true"></i> Faculty</div>
-          <h2 id="faculty-title" class="section-title reveal reveal-delay-1">Our Distinguished Faculty</h2>
+          <h2 id="faculty-title" class="section-title reveal reveal-delay-1">Our Distinguished Teachers & Staff</h2>
           <p class="section-subtitle reveal reveal-delay-2">Meet the dedicated educators who make learning extraordinary at LNA.</p>
         </div>
 
@@ -2228,7 +2231,7 @@
         <div class="section-header">
           <div class="section-label reveal"><i data-lucide="image" class="icon-xs" aria-hidden="true"></i> Gallery</div>
           <h2 id="gallery-title" class="section-title reveal reveal-delay-1">School Life Gallery</h2>
-          <p class="section-subtitle reveal reveal-delay-2">A glimpse into the vibrant life at Dhaka Model High School.</p>
+          <p class="section-subtitle reveal reveal-delay-2">A glimpse into the vibrant life at LHUMB Nagar Academy.</p>
         </div>
 
         <div class="gallery-filters reveal reveal-delay-3" role="group" aria-label="Filter gallery">
@@ -2506,7 +2509,7 @@
               </svg>
             </a>
             <!-- Email -->
-            <a href="mailto:info@dmhs.edu.bd" class="social-link social-mail" role="listitem" aria-label="Send email">
+            <a href="mdabulkalamazad774@gmail.com" class="social-link social-mail" role="listitem" aria-label="Send email">
               <i data-lucide="mail" class="icon-sm" aria-hidden="true"></i>
             </a>
           </div>
@@ -2603,7 +2606,7 @@
     // Typewriter
     Typewriter.run(
       document.getElementById('typewriter-el'),
-      ['Excellence in Education', 'Shaping Future Leaders', 'তোমার স্বপ্ন, আমাদের লক্ষ্য', '98% SSC Pass Rate', 'Since 1985'],
+      ['Excellence in Education', 'Shaping Future Leaders', 'তোমার স্বপ্ন, আমাদের লক্ষ্য', '98% SSC Pass Rate', 'Since 1994'],
       80, 2200
     );
 
@@ -2825,7 +2828,7 @@
   function populateAcademics() {
     const classes = [
       {
-        name: 'Class 6 – Junior I',
+        name: 'Class 6',
         desc: 'Foundation year — core subjects and activity-based learning.',
         icon: 'book',
         subjects: ['Bangla', 'English', 'Mathematics', 'Science', 'Social Studies', 'Religion', 'ICT', 'Physical Education'],
@@ -2833,7 +2836,7 @@
         color: 'linear-gradient(135deg,#1B4332,#2D6A4F)'
       },
       {
-        name: 'Class 7 – Junior II',
+        name: 'Class 7',
         desc: 'Building depth in sciences and humanities.',
         icon: 'flask-conical',
         subjects: ['Bangla', 'English', 'Mathematics', 'Science', 'Agriculture', 'Religion', 'ICT', 'Arts'],
@@ -2841,7 +2844,7 @@
         color: 'linear-gradient(135deg,#1A5276,#2E86C1)'
       },
       {
-        name: 'Class 8 – Junior III',
+        name: 'Class 8',
         desc: 'Advanced problem-solving and analytical skills.',
         icon: 'calculator',
         subjects: ['Bangla', 'English', 'Mathematics', 'Science', 'History', 'Geography', 'Religion', 'ICT'],
@@ -2849,7 +2852,7 @@
         color: 'linear-gradient(135deg,#1E8449,#27AE60)'
       },
       {
-        name: 'Class 9 – SSC Year I',
+        name: 'Class 9',
         desc: 'Science, Humanities and Business tracks begin.',
         icon: 'microscope',
         subjects: ['Bangla', 'English', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'ICT', 'Religion'],
@@ -2857,7 +2860,7 @@
         color: 'linear-gradient(135deg,#7D3C98,#9B59B6)'
       },
       {
-        name: 'Class 10 – SSC Year II',
+        name: 'Class 10',
         desc: 'Final year — SSC exam preparation.',
         icon: 'graduation-cap',
         subjects: ['Bangla', 'English', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'ICT', 'Religion'],
@@ -2928,14 +2931,19 @@
       const initials = t.name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
       return `
         <div class="teacher-card reveal reveal-delay-${(i % 4) + 1}">
-          <div class="teacher-avatar" style="background:${colors[i % colors.length]}" aria-hidden="true">${initials}</div>
-          <div class="teacher-name">${UI._escapeHtml(t.name)}</div>
-          <div class="teacher-subject">${UI._escapeHtml(t.subject)}</div>
-          <div class="teacher-qual">${UI._escapeHtml(t.qualification)}</div>
-          <div class="teacher-bio">
-            ${t.experience} years of teaching experience. Classes: ${t.classes.join(', ')}.
-          </div>
-        </div>
+         <div class="teacher-avatar">
+  <img src="${t.photo}" alt="${t.name}"
+       style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+</div>
+     <div class="teacher-name">${UI._escapeHtml(t.name)}</div>
+<div class="teacher-subject">${UI._escapeHtml(t.subject)}</div>
+<div class="teacher-qual">${UI._escapeHtml(t.qualification)}</div>
+
+<div class="teacher-bio">
+    ${UI._escapeHtml(t.qualification)}
+</div>
+
+</div>
       `;
     }).join('');
 

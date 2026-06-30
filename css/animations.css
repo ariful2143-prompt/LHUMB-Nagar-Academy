@@ -1,9 +1,4 @@
-/**
- * DMHS — Dhaka Model High School
- * All Keyframe Animations & Transition Effects
- */
 
-/* ─── Core Keyframes ──────────────────────────────────────────────────────────── */
 
 @keyframes fadeIn {
   from { opacity: 0; }

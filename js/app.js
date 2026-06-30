@@ -1,7 +1,4 @@
-/**
- * DMHS — Dhaka Model High School
- * Core Application Logic: Auth, Routing, Session Management
- */
+
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 
@@ -208,7 +205,7 @@ const LoginModal = {
             <i data-lucide="shield" class="login-shield-icon"></i>
           </div>
           <h2 id="login-modal-title" class="login-title">Portal Login</h2>
-          <p class="login-subtitle">Dhaka Model High School</p>
+          <p class="login-subtitle">LHUMB Nagar Academy</p>
         </div>
 
         <div class="role-tabs" role="tablist" aria-label="Select role">

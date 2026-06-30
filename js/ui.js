@@ -1,7 +1,4 @@
-/**
- * DMHS — Dhaka Model High School
- * UI Helpers: Toasts, Modals, Tables, Forms, Loaders, Skeleton
- */
+
 
 // ─── Toast Notifications ───────────────────────────────────────────────────────
 

@@ -1,8 +1,4 @@
-/**
- * DMHS — Dhaka Model High School
- * Mock Database (localStorage)
- * Initializes all data stores with seed data on first load.
- */
+
 
 const DB_KEYS = {
   STUDENTS:    'school_students',
@@ -45,14 +41,149 @@ const SEED = {
   ],
 
   [DB_KEYS.TEACHERS]: [
-    { id: 'TCH001', name: 'Nasreen Akter',      subject: 'Mathematics',    qualification: 'M.Sc, B.Ed', classes: ['10A','9A'], contact: '01812345678', joinYear: 2010, email: 'nasreen@dmhs.edu.bd',  photo: null, experience: 14, designation: 'Senior Teacher' },
-    { id: 'TCH002', name: 'Abdur Rahim',         subject: 'Bangla',         qualification: 'M.A, B.Ed',  classes: ['10A','10B'],contact: '01812345679', joinYear: 2008, email: 'rahim@dmhs.edu.bd',    photo: null, experience: 16, designation: 'Senior Teacher' },
-    { id: 'TCH003', name: 'Dr. Shirin Akhter',   subject: 'English',        qualification: 'Ph.D, M.A',  classes: ['9A','9B'],  contact: '01812345680', joinYear: 2015, email: 'shirin@dmhs.edu.bd',   photo: null, experience: 9,  designation: 'Assistant Teacher' },
-    { id: 'TCH004', name: 'Kamal Uddin',          subject: 'Physics',        qualification: 'M.Sc, B.Ed', classes: ['10A','10B'],contact: '01812345681', joinYear: 2012, email: 'kamal@dmhs.edu.bd',    photo: null, experience: 12, designation: 'Senior Teacher' },
-    { id: 'TCH005', name: 'Rehana Parvin',        subject: 'Chemistry',      qualification: 'M.Sc',       classes: ['9A','8A'],  contact: '01812345682', joinYear: 2018, email: 'rehana@dmhs.edu.bd',   photo: null, experience: 6,  designation: 'Assistant Teacher' },
-    { id: 'TCH006', name: 'Mohammed Shahadat',    subject: 'History',        qualification: 'M.A, B.Ed',  classes: ['8A','8B'],  contact: '01812345683', joinYear: 2011, email: 'shahadat@dmhs.edu.bd', photo: null, experience: 13, designation: 'Senior Teacher' },
-    { id: 'TCH007', name: 'Poly Khatun',          subject: 'Biology',        qualification: 'M.Sc, B.Ed', classes: ['10A','9B'], contact: '01812345684', joinYear: 2016, email: 'poly@dmhs.edu.bd',     photo: null, experience: 8,  designation: 'Assistant Teacher' },
-    { id: 'TCH008', name: 'Anisur Rahman',        subject: 'ICT',            qualification: 'B.Sc, M.Sc', classes: ['10A','9A','8A'], contact: '01812345685', joinYear: 2019, email: 'anis@dmhs.edu.bd', photo: null, experience: 5, designation: 'Junior Teacher' },
+   {
+  id: '20260001',
+  name: 'MD ABUL KALAM AZAD',
+  subject: 'N/A',
+  qualification: 'HEAD TEACHER',
+  photo: 'image/teacher/image.png'
+},
+{
+  id: '20260002',
+  name: 'MD NURUL AMIN',
+  subject: 'N/A',
+  qualification: 'ASST. HEAD TEACHER',
+  photo: 'image/teacher/image.png'
+  
+},
+{
+  id: '20260003',
+  name: 'JOBEDA KHATUN',
+  subject: 'Bangla',
+  qualification: 'ASSISTANT TEACHER',
+  photo: 'image/teacher/image.png'
+ 
+},
+{
+  id: '20260004',
+  name: 'LUTFUN NAHAR',
+  subject: 'Social Science',
+  qualification: 'ASSISTANT TEACHER',
+  photo: 'image/teacher/LUTFUN NAHAR.png'
+  
+},
+{
+  id: '20260005',
+  name: 'TAHAMINA AKTER',
+  subject: 'Business Studies',
+  qualification: 'ASSISTANT TEACHER',
+  photo: 'image/teacher/TAHAMINA AKTER.png'
+
+},
+{
+  id: '20260006',
+  name: 'SWAPON LAL CHAKRABORTY',
+  subject: 'ICT',
+  qualification: 'ASSISTANT TEACHER',
+  photo: 'image/teacher/SWAPON LAL CHAKRABORTY.png'
+  
+},
+{
+  id: '20260007',
+  name: 'MD. RAFIQUL ISLAM',
+  subject: 'Mathematics',
+  qualification: 'ASSISTANT TEACHER',
+  photo: 'image/teacher/Md Rafiqul Islam.png'
+ 
+},
+{
+  id: '20260008',
+  name: 'ANWAR HOSSAIN',
+  subject: 'Agriculture',
+  qualification: 'ASSISTANT TEACHER',
+   photo: 'image/teacher/Anwar Hossain.png'
+
+},
+{
+  id: '20260009',
+  name: 'MD. ZAKIR HOSSAIN',
+  subject: 'Physical Education',
+  qualification: 'ASSISTANT TEACHER',
+    photo: 'image/teacher/MD. ZAKIR HOSSAIN.png'
+
+},
+{
+  id: '20260010',
+  name: 'TASLIMA AKTER',
+  subject: 'Library & Information Science',
+  qualification: 'ASSISTANT TEACHER',
+  photo: 'image/teacher/image.png'
+
+},
+{
+  id: '20260011',
+  name: 'MD. TAIMUR RAHMAN',
+  subject: 'Islam & Moral Studies',
+  qualification: 'ASSISTANT TEACHER',
+   photo: 'image/teacher/MD. TAIMUR RAHMAN.png'
+
+},
+{
+  id: '20260012',
+  name: 'ARIF HOSSAIN',
+  subject: 'English',
+  qualification: 'ASSISTANT TEACHER',
+  photo: 'image/teacher/arif.jpeg'
+
+},
+{
+  id: '20260013',
+  name: 'SANTANA RANI ROY',
+  subject: 'Biology',
+  qualification: 'ASSISTANT TEACHER',
+    photo: 'image/teacher/Shanatana Rani.jpeg'
+
+},
+{
+  id: '20260014',
+  name: 'ABDUR RASHID',
+  subject: 'Office Assistant',
+  qualification: 'OFFICE ASSISTANT CUM ACC. ASST.',
+    photo: 'image/teacher/ABDUR RASHID.png'
+
+},
+{
+  id: '20260015',
+  name: 'MD HABIBUR RAHMAN',
+  subject: 'N/A',
+  qualification: 'MLSS (SECURITY)',
+   photo: 'image/teacher/Habibur Rahman.png'
+
+},
+{
+  id: '20260016',
+  name: 'MANIK HOSSAIN',
+  subject: 'N/A',
+  qualification: 'CLEANER',
+   photo: 'image/teacher/image.png'
+
+},
+{
+  id: '20260017',
+  name: 'SHIKHA RANI DAS METHELA',
+  subject: 'N/A',
+  qualification: 'MLSS (AYAH)',
+   photo: 'image/teacher/image.png'
+
+},
+{
+  id: '20260018',
+  name: 'SAHAB UDDIN',
+  subject: 'N/A',
+  qualification: 'NIGHT GUARD',
+   photo: 'image/teacher/image.png'
+
+},
   ],
 
   [DB_KEYS.NOTICES]: [
@@ -147,17 +278,17 @@ const SEED = {
   [DB_KEYS.ADMISSIONS]: [],
 
   [DB_KEYS.SETTINGS]: {
-    schoolName: 'Dhaka Model High School',
-    schoolNameBn: 'ঢাকা মডেল উচ্চ বিদ্যালয়',
-    established: '1985',
-    address: 'Mirpur-10, Dhaka-1216, Bangladesh',
-    phone: '+880 2-9001234',
-    email: 'info@dmhs.edu.bd',
-    website: 'www.dmhs.edu.bd',
-    principal: 'Dr. Abdul Karim, Ph.D',
+    schoolName: 'LHUMB Nagar Academy',
+    schoolNameBn: 'লাম নগর একাডেমী',
+    established: '1994',
+    address: 'Ramganj,Lakshmipur, Bangladesh',
+    phone: '+880 1-715677488',
+    email: 'mdabulkalamazad774@gmail.com',
+    website: 'none',
+    principal: 'Md Abul Kalam Azad',
     motto: 'আলোর পথে, সত্যের সন্ধানে — In the Path of Light, In Search of Truth',
-    eiin: '108456',
-    mpo: 'MPO-2025-DK-1234',
+    eiin: '107080',
+    
   },
 
   [DB_KEYS.ACTIVITY]: [],
