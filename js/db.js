@@ -46,14 +46,14 @@ const SEED = {
   name: 'MD ABUL KALAM AZAD',
   subject: 'N/A',
   qualification: 'HEAD TEACHER',
-  photo: 'image/teacher/image.png'
+  photo: 'image/teacher/MD ABUL KALAM AZAD.png'
 },
 {
   id: '20260002',
   name: 'MD NURUL AMIN',
   subject: 'N/A',
   qualification: 'ASST. HEAD TEACHER',
-  photo: 'image/teacher/image.png'
+  photo: 'image/teacher/MD NURUL AMIN.png'
   
 },
 {
@@ -61,7 +61,7 @@ const SEED = {
   name: 'JOBEDA KHATUN',
   subject: 'Bangla',
   qualification: 'ASSISTANT TEACHER',
-  photo: 'image/teacher/image.png'
+  photo: 'image/teacher/JOBEDA KHATUN.png'
  
 },
 {
@@ -117,7 +117,7 @@ const SEED = {
   name: 'TASLIMA AKTER',
   subject: 'Library & Information Science',
   qualification: 'ASSISTANT TEACHER',
-  photo: 'image/teacher/image.png'
+  photo: 'image/teacher/TASLIMA AKTER.png'
 
 },
 {
