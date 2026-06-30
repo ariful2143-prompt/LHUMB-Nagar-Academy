@@ -21,7 +21,7 @@ const DB_KEYS = {
 // ─── Seed Data ─────────────────────────────────────────────────────────────────
 
 // Bump this version when seed data structure changes to force a re-seed
-const DB_VERSION = '1.1.0';
+const DB_VERSION = '1.2.0';
 const DB_VERSION_KEY = 'dmhs_db_version';
 
 const SEED = {
