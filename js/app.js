@@ -269,17 +269,7 @@ const LoginModal = {
           </button>
         </form>
 
-        <div class="login-credentials-hint">
-          <details>
-            <summary><i data-lucide="info" class="icon-xs"></i> Demo Credentials</summary>
-            <div class="creds-grid">
-              <div><strong>Admin:</strong> admin / admin123</div>
-              <div><strong>Teacher:</strong> teacher1 / teach123</div>
-              <div><strong>Student:</strong> student1 / stud123</div>
-            </div>
-          </details>
-        </div>
-      </div>
+       
     `;
 
     document.body.appendChild(modal);
